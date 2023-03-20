@@ -1,7 +1,5 @@
 # For devs
 
-Prerequisites are: `Python 3.9.16`
-
 ## Environment
 
 ```
