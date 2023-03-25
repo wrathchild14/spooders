@@ -1,3 +1,8 @@
+# WIER
+
+[Assignment 1 - Crawler](./pa1)
+
+
 # For devs
 
 ## Environment
@@ -31,11 +36,11 @@ pip install -r requirements.txt
 
 ### Windows
 ```
-docker run --name postgresql-wier -e POSTGRES_PASSWORD=SecretPassword -e POSTGRES_USER=user -v %cd%/pgdata:/var/lib/postgresql/data -v %cd%/init-scripts:/docker-entrypoint-initdb.d -p 5432:5432 -d postgres:12.2
+docker run --name postgresql-wier -e POSTGRES_PASSWORD=SecretPassword -e POSTGRES_USER=user -v %cd%/pgdata:/var/lib/postgresql/data -v %cd%/pa1/init-scripts:/docker-entrypoint-initdb.d -p 5432:5432 -d postgres:12.2
 ```
 
 ### Linux
 
 ```
-docker run --name postgresql-wier -e POSTGRES_PASSWORD=SecretPassword -e POSTGRES_USER=user -v $PWD/pgdata:/var/lib/postgresql/data -v $PWD/init-scripts:/docker-entrypoint-initdb.d -p 5432:5432 -d postgres:12.2
+docker run --name postgresql-wier -e POSTGRES_PASSWORD=SecretPassword -e POSTGRES_USER=user -v $PWD/pgdata:/var/lib/postgresql/data -v $PWD/pa1/init-scripts:/docker-entrypoint-initdb.d -p 5432:5432 -d postgres:12.2
 ```
