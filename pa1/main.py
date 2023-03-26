@@ -5,11 +5,13 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from url_normalize import url_normalize
 
 from webdriver_manager.chrome import ChromeDriverManager
 
+from pa1.db_controller import DatabaseController
+
 # Properties to use selenium for proper JS rendering
-WEB_DRIVER_LOCATION = "webdriver/chromedriver.exe"
 TIMEOUT = 5
 chrome_options = Options()
 chrome_options.add_argument("user-agent=fri-wier-spoders")
@@ -39,9 +41,11 @@ class Frontier:
             return False
 
     def add_url(self, url):
-        url = self.normalize_url(url)
-        if ".gov.si" in url and not self.is_visited(url):
-            self.frontier.append(url)
+        if url is not None:
+            # url = self.normalize_url(url)
+            url = url_normalize(url)
+            if url not in self.frontier and ".gov.si" in url and not self.is_visited(url):
+                self.frontier.append(url)
 
     def normalize_url(self, url):
         # Remove #
@@ -63,6 +67,7 @@ class Frontier:
 
 
 def crawler(frontier):
+    db_controller = DatabaseController()
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     while not frontier.is_empty():
         # Get URL from the frontier
@@ -72,19 +77,22 @@ def crawler(frontier):
         # Timeout needed for Web page to render
         time.sleep(TIMEOUT)
         html = driver.page_source
+        db_controller.insert_page(url=current_url, page_type_code='HTML', http_status_code=200)
+
         # Parsing links
         for element in driver.find_elements(By.TAG_NAME, 'a'):
             link = element.get_attribute("href")
             frontier.add_url(link)
         # print(frontier.print_frontier())
 
+    db_controller.print_pages()
     driver.close()
+    db_controller.close()
 
 
 if __name__ == '__main__':
     # Seed urls to frontier
     seed_urls = ['http://gov.si', 'http://evem.gov.si', 'http://e-uprava.gov.si', 'http://e-prostor.gov.si']
     frontier = Frontier(seed_urls)
-
     # Start crawler
     crawler(frontier)
