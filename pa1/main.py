@@ -72,6 +72,9 @@ def crawler(frontier):
     while not frontier.is_empty():
         # Get URL from the frontier
         current_url = frontier.pop_element()
+        
+        # Fetch URL to crawler and start crawling page: 
+        
         # Retrieve page
         driver.get(current_url)
         # Timeout needed for Web page to render
