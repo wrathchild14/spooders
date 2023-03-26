@@ -24,7 +24,22 @@ class DatabaseController:
         fetched_pages = cur.fetchall()
         for page in fetched_pages:
             print(page)
+            
+    def get_robots_txt(self, domain):
+        cur = self.connection.cursor()
+        cur.execute(
+            "SELECT robots_content FROM crawldb.site WHERE domain=%s;",
+            (domain,)
+        )
+        # Check if array is empty, meaning we didn't find the site already present in the table
+        robots = None
+        result = cur.fetchall()
+        if result:
+            robots = result[0][0]
 
+        cur.close()
+        return robots
+    
     def close(self):
         self.connection.close()
 
