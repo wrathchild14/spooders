@@ -32,12 +32,12 @@ class Crawler:
     def GetRobotsContent(self, domain):
         # TODO: Timer for accesing robots txt
         # Check if Robots.txt is already in container:
-        robots_txt = self.db_controller.DatabaseController.get_robots_txt(domain)
+        robots_txt = self.db_controller.get_robots_txt(domain)
         if robots_txt is None:
             # Container with current domain does not have robots.txt so get it and insert it
             robots_content = self.GetRobotsTxt(domain)
             if robots_content is not None:
-                self.db_controller.DatabaseController.insert_robots_txt(domain, robots_content)
+                self.db_controller.insert_robots_txt(domain, robots_content)
                 return robots_content
             else:
                 print("Current domain does not have robots.txt")
