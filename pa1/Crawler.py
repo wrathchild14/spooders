@@ -27,10 +27,10 @@ class Crawler:
         self.db_controller = DatabaseController()
         self.frontier = frontier
 
-    def IsSpiderTrap(self, url):
+    def is_spider_trap(self, url):
         return True if "mailto:" in url or "tel:" in url or len(url) > 1000 else False
 
-    def GetDomainAndIP(self, url):
+    def get_domain_and_ip(self, url):
         domain = urllib.parse.urlparse(url).netloc
         try:
             IP = socket.gethostbyname(domain)
@@ -38,7 +38,7 @@ class Crawler:
             IP = None
         return domain, IP
 
-    def GetRobotsTxt(self, domain):
+    def get_robots_txt_from_domain(self, domain):
         url = "http://{}/robots.txt".format(domain)
         try:
             with urllib.request.urlopen(url) as response:
@@ -46,22 +46,23 @@ class Crawler:
         except:
             return
         
-    def GetRobotsContent(self, domain):
+    def get_robots_content(self, domain):
         # TODO: Timer for accesing robots txt
         # Check if Robots.txt is already in container:
         robots_txt = self.db_controller.get_robots_txt(domain)
         if robots_txt is None:
+            print("robots.txt is not in container!")
             # Container with current domain does not have robots.txt so get it and insert it
-            robots_content = self.GetRobotsTxt(domain)
+            robots_content = self.get_robots_txt_from_domain(domain)
             if robots_content is not None:
-                self.db_controller.insert_site(domain, robots_content)
+                print("Successfully retrived robots.txt!")                
                 return robots_content
             else:
                 print("Current domain does not have robots.txt")
                 return None
         return robots_txt
 
-    def GetRobotAllowedPaths(self, robots_txt):
+    def get_robot_allowed_paths(self, robots_txt):
         allowed_paths = []
         for line in robots_txt.split('\n'):
             line = line.strip()
@@ -70,7 +71,7 @@ class Crawler:
                 allowed_paths.append(allowed_path)
         return allowed_paths
 
-    def GetRobotDisallowedPaths(self, robots_txt):
+    def get_robot_disallowed_paths(self, robots_txt):
         disallowed_paths = []
         for line in robots_txt.split('\n'):
             line = line.strip()
@@ -78,11 +79,20 @@ class Crawler:
                 disallowed_path = line.split(':')[1].strip()
                 disallowed_paths.append(disallowed_path)
         return disallowed_paths
-
-    def CrawlPage(self, url):
+ 
+    def get_sitemap(self, robots_txt):
+        sitemap_urls = []
+        for line in robots_txt.split('\n'):
+            line = line.strip()
+            if line.startswith('Sitemap:'):
+                sitemap_url = re.findall(r'(https?://\S+)', line)[0]
+                sitemap_urls.append(sitemap_url)
+        return sitemap_urls
+    
+    def crawl_page(self, url):
         print("Crawling current page: " + url)
 
-        if self.IsSpiderTrap(url):
+        if self.is_spider_trap(url):
             print("Spider trap detected, exiting URL...")
             return
 
@@ -95,21 +105,25 @@ class Crawler:
         except:
             print("Website cannot be reached!")
             return
-
+        
+        # Get domain and ip
         domain, ip = self.GetDomainAndIP(url)
 
         # Get robots.txt
-        robots_content = self.GetRobotsContent(domain)
+        robots_content = self.get_robots_content(domain)
 
         if robots_content:
-            allowed_paths = self.GetRobotAllowedPaths(robots_content) # Not needed
+            allowed_paths = self.GetRobotAllowedPaths(robots_content) # Not actually needed
             disallowed_paths = self.GetRobotDisallowedPaths(robots_content)
             parsed_url = urlparse(url)
             for path in disallowed_paths:
                 if parsed_url.path.startswith(path):
                     print("URL is not allowed by robots.txt")
                     return
-
+                # Get sitemap:
+                sitemap = self.get_sitemap(robots_content)
+                print(sitemap)
+            
         # Retrieve page
         self.web_driver.get(url)
         # Timeout needed for Web page to render
