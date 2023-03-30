@@ -9,7 +9,7 @@ from url_normalize import url_normalize
 
 from webdriver_manager.chrome import ChromeDriverManager
 
-from pa1.db_controller import DatabaseController
+from db_controller import DatabaseController
 
 # Properties to use selenium for proper JS rendering
 TIMEOUT = 5
@@ -42,29 +42,22 @@ class Frontier:
 
     def add_url(self, url):
         if url is not None:
-            # url = self.normalize_url(url)
-            url = url_normalize(url)
+            url = self.normalize_url(url)
             if url not in self.frontier and ".gov.si" in url and not self.is_visited(url):
                 self.frontier.append(url)
 
     def normalize_url(self, url):
+        url = url_normalize(url)
         # Remove #
         url = urldefrag(url)[0]
         url = str(url)
         # Remove trailing slash.
         if url.endswith('/'):
             url = url[:-1]
-        # Remove http://
-        if url.startswith('http://'):
-            url = url[7:]
-        # Remove https://
-        if url.startswith('https://'):
-            url = url[8:]
         return url
 
     def print_frontier(self):
         print(self.frontier)
-
 
 def crawler(frontier):
     db_controller = DatabaseController()
