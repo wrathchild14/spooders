@@ -48,15 +48,16 @@ class DatabaseController:
 
         cur.close()
         return robots
-    
-    def insert_robots_txt(self, domain, robots_content):
-        cur = self.connection.cursor()
-        cur.execute(
-        "INSERT INTO crawldb.site (domain, robots_content) VALUES (%s, %s)",
-            (domain, robots_content)
-        )
-        self.connection.commit()
-        cur.close()
+        
+    # Obsolete
+    # def insert_robots_txt(self, domain, robots_content):
+    #     cur = self.connection.cursor()
+    #     cur.execute(
+    #         "INSERT INTO crawldb.site (domain, robots_content) VALUES (%s, %s)",
+    #         (domain, robots_content)
+    #     )
+    #     self.connection.commit()
+    #     cur.close()
 
     # TABLE PAGE
 
