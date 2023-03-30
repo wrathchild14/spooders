@@ -107,14 +107,14 @@ class Crawler:
             return
         
         # Get domain and ip
-        domain, ip = self.GetDomainAndIP(url)
+        domain, ip = self.get_domain_and_ip(url)
 
         # Get robots.txt
         robots_content = self.get_robots_content(domain)
 
         if robots_content:
-            allowed_paths = self.GetRobotAllowedPaths(robots_content) # Not actually needed
-            disallowed_paths = self.GetRobotDisallowedPaths(robots_content)
+            allowed_paths = self.get_robot_allowed_paths(robots_content) # Not actually needed
+            disallowed_paths = self.get_robot_disallowed_paths(robots_content)
             parsed_url = urlparse(url)
             for path in disallowed_paths:
                 if parsed_url.path.startswith(path):
