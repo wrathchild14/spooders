@@ -1,3 +1,4 @@
+import hashlib
 import urllib
 from urllib import request, parse
 from urllib.parse import urlparse
@@ -30,7 +31,10 @@ class Crawler:
 
     def is_spider_trap(self, url):
         return True if "mailto:" in url or "tel:" in url or len(url) > 1000 else False
-
+    
+    def get_hash(self, html):
+        return hashlib.sha256(html.encode("utf-8")).digest()
+    
     def get_domain_and_ip(self, url):
         domain = urllib.parse.urlparse(url).netloc
         try:
@@ -47,17 +51,16 @@ class Crawler:
         except:
             return
         
-    def get_robots_content(self, domain):
-        # TODO: Timer for accesing robots txt
+    def get_robots_content(self, domain):        
         # Check if Robots.txt is already in container:
         robots_txt = self.db_controller.get_robots_txt(domain)
         if robots_txt is None:
             print("robots.txt is not in container!")
             # Container with current domain does not have robots.txt so get it and insert it
-            robots_content = self.get_robots_txt_from_domain(domain)
+            robots_txt = self.get_robots_txt_from_domain(domain)
             if robots_content is not None:
                 print("Successfully retrived robots.txt!")                
-                return robots_content
+                return robots_txt
             else:
                 print("Current domain does not have robots.txt")
                 return None
@@ -120,16 +123,42 @@ class Crawler:
             for path in disallowed_paths:
                 if parsed_url.path.startswith(path):
                     print("URL is not allowed by robots.txt")
-                    return
-                # Get sitemap:
-                sitemap = self.get_sitemap(robots_content)
-                print(sitemap)
+                    return               
             
         # Retrieve page
         self.web_driver.get(url)
         # Timeout needed for Web page to render
         time.sleep(self.timeout)
         html = self.web_driver.page_source
+                
+        # Check if site is already in database
+        status = self.db_controller.get_site(domain)
+
+        if status == -1:
+            # INSERT SITE INTO DATABASE
+            if robots_content:
+                sitemap = self.get_sitemap(robots_content)
+                if sitemap is None:
+                    print("Error cannot add site to container as the sitemap is not inside robots.txt")
+                else:
+                    self.db_controller.insert_site(domain, robots_content, sitemap[0])
+                    # Tuki lahko se od sitemapa dodamo linke
+
+        # Duplicate checking
+        page_hash = self.get_hash(url)
+        if self.db_controller.is_duplicate(page_hash):
+            print("Page is a duplicate!")
+            return
+
+        # Manjka se page id
+        self.db_controller.insert_hash(page_hash, ???)       
+        
+        
+        
+        
+        
+        
+        
         
         # Inserting page to database
         self.db_controller.insert_page(url=url, page_type_code='HTML', http_status_code=200)
