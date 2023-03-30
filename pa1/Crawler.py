@@ -37,7 +37,7 @@ class Crawler:
             # Container with current domain does not have robots.txt so get it and insert it
             robots_content = self.GetRobotsTxt(domain)
             if robots_content is not None:
-                self.db_controller.insert_robots_txt(domain, robots_content)
+                self.db_controller.insert_site(domain, robots_content)
                 return robots_content
             else:
                 print("Current domain does not have robots.txt")

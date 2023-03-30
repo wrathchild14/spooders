@@ -27,7 +27,7 @@ class Frontier:
         return len(self.frontier) == 0
 
     def pop_element(self):
-        element = self.frontier.pop()
+        element = self.frontier.pop(0)
         self.mark_visited(element)
         return element
 
@@ -41,16 +41,29 @@ class Frontier:
             return False
 
     def add_url(self, url):
-        if url is not None:
-            url = self.normalize_url(url)
-            if url not in self.frontier and ".gov.si" in url and not self.is_visited(url):
-                self.frontier.append(url)
+        url = self.canon_url(url)
+        if url != None and url not in self.frontier and ".gov.si" in url and not self.is_visited(url):
+            self.frontier.append(url)
 
-    def normalize_url(self, url):
-        url = url_normalize(url)
+    def canon_url(self, url):
+        if url == None or url == "":
+            return None
+        if "javascript:" in url:
+            return None
+        if url[0] == "#":
+            return None
+        if url == "/":
+            return None
+        if url.startswith("www"):
+            url = "http://" + str(url)
         # Remove #
         url = urldefrag(url)[0]
         url = str(url)
+        # Normalize
+        url = url_normalize(url)
+        # Remove filtering
+        if "?" in url:
+            url = url.split("?")[0]
         # Remove trailing slash.
         if url.endswith('/'):
             url = url[:-1]
