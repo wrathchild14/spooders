@@ -3,18 +3,32 @@ from urllib import request, parse
 from urllib.parse import urlparse
 import time
 import socket
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+
+from webdriver_manager.chrome import ChromeDriverManager
+
 from db_controller import DatabaseController
 
+# Properties to use selenium for proper JS rendering
+chrome_options = Options()
+chrome_options.add_argument("user-agent=fri-wier-spoders")
+chrome_options.add_argument("--headless")
+
 class Crawler:
-    def __init__(self, project_name, timeout, web_driver_location, thread_instance, database_controller):
+    def __init__(self, project_name, timeout, thread_instance, frontier):
         self.project_name = project_name
         self.instance = thread_instance
         self.timeout = timeout
-        self.web_driver_location = web_driver_location
-        self.db_controller = database_controller
+        self.web_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        self.db_controller = DatabaseController()
+        self.frontier = frontier
 
     def IsSpiderTrap(self, url):
-        return True if "mailto:" or "tel:" in url or len(url) > 1000 else False
+        return True if "mailto:" in url or "tel:" in url or len(url) > 1000 else False
 
     def GetDomainAndIP(self, url):
         domain = urllib.parse.urlparse(url).netloc
@@ -26,9 +40,12 @@ class Crawler:
 
     def GetRobotsTxt(self, domain):
         url = "http://{}/robots.txt".format(domain)
-        response = urllib.request.urlopen(url)
-        return response.read().decode("utf-8")
-
+        try:
+            with urllib.request.urlopen(url) as response:
+                return response.read().decode("utf-8")
+        except:
+            return
+        
     def GetRobotsContent(self, domain):
         # TODO: Timer for accesing robots txt
         # Check if Robots.txt is already in container:
@@ -93,6 +110,20 @@ class Crawler:
                     print("URL is not allowed by robots.txt")
                     return
 
+        # Retrieve page
+        self.web_driver.get(url)
+        # Timeout needed for Web page to render
+        time.sleep(self.timeout)
+        html = self.web_driver.page_source
+        
+        self.db_controller.insert_page(url=url, page_type_code='HTML', http_status_code=200)
+        
+        # Parsing links
+        for element in self.web_driver.find_elements(By.TAG_NAME, 'a'):
+            link = element.get_attribute("href")
+            self.frontier.add_url(link)
+        self.frontier.print_frontier()
 
     def StopCrawler(self):
-        pass
+        self.web_driver.close()
+        self.db_controller.close()
