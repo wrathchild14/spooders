@@ -79,6 +79,6 @@ if __name__ == '__main__':
         # Get URL from the frontier
         current_url = frontier.pop_element()        
         # Fetch URL to crawler and start crawling page:
-        crawler.CrawlPage(current_url)
+        crawler.crawl_page(current_url)
 
     crawler.StopCrawler()
