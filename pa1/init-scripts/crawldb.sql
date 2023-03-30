@@ -94,3 +94,9 @@ INSERT INTO crawldb.page_type VALUES
 	('BINARY'),
 	('DUPLICATE'),
 	('FRONTIER');
+	
+CREATE TABLE crawldb.hash (
+    	hash bytea,
+	page_id integer,
+    CONSTRAINT fk_url FOREIGN KEY ( page_id ) REFERENCES crawldb.page( id ) ON DELETE RESTRICT
+ );
