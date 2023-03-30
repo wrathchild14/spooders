@@ -12,7 +12,8 @@ def reset_db():
     # cur.execute("TRUNCATE TABLE crawldb.link CASCADE")
     # cur.execute("TRUNCATE TABLE crawldb.image RESTART IDENTITY CASCADE")
     # cur.execute("TRUNCATE TABLE crawldb.page_data RESTART IDENTITY CASCADE")
-
+    # cur.execute ("TRUNCATE TABLE crawldb.hash RESTART IDENTITY CASCADE")
+    
     print("Log: successfully reset tables")
 
     cursor.close()
