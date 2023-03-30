@@ -1,5 +1,6 @@
 import time
 from urllib.parse import urldefrag
+import threading
 
 from url_normalize import url_normalize
 
@@ -67,13 +68,9 @@ class Frontier:
     def print_frontier(self):
         print(self.frontier)
 
-if __name__ == '__main__':
-    # Seed urls to frontier
-    seed_urls = SEED_URLS
-    frontier = Frontier(seed_urls)
-
-    # Start crawler
-    crawler = Crawler(PROJECT_NAME, TIMEOUT, 0, frontier)
+def crawler(thread_index, frontier):
+    # Create crawler
+    crawler = Crawler(PROJECT_NAME, TIMEOUT, thread_index, frontier)
 
     while not frontier.is_empty():
         # Get URL from the frontier
@@ -82,3 +79,18 @@ if __name__ == '__main__':
         crawler.crawl_page(current_url)
 
     crawler.StopCrawler()
+
+if __name__ == '__main__':
+    # Seed urls to frontier
+    seed_urls = SEED_URLS
+    frontier = Frontier(seed_urls)
+
+    # Create multiple workers in parallel
+    workers = []
+    for i in range(NUMBER_OF_WORKERS):
+        worker = threading.Thread(target=crawler, args=(i, frontier))
+        # Start thread
+        worker.start()
+        workers.append(worker)
+    for worker in workers:
+        worker.join()

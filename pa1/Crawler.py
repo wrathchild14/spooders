@@ -3,6 +3,7 @@ from urllib import request, parse
 from urllib.parse import urlparse
 import time
 import socket
+import re
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -130,13 +131,13 @@ class Crawler:
         time.sleep(self.timeout)
         html = self.web_driver.page_source
         
+        # Inserting page to database
         self.db_controller.insert_page(url=url, page_type_code='HTML', http_status_code=200)
-        
+
         # Parsing links
         for element in self.web_driver.find_elements(By.TAG_NAME, 'a'):
             link = element.get_attribute("href")
-            self.frontier.add_url(link)
-        self.frontier.print_frontier()
+            self.frontier.add_url(link)        
 
     def StopCrawler(self):
         self.web_driver.close()
