@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 import time
 import socket
 import re
+from datetime import datetime
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -134,6 +135,8 @@ class Crawler:
         # Check if site is already in database
         status = self.db_controller.get_site(domain)
 
+        # SITE DATABASE INSERTION
+        
         if status == -1:
             # INSERT SITE INTO DATABASE
             if robots_content:
@@ -143,26 +146,33 @@ class Crawler:
                 else:
                     self.db_controller.insert_site(domain, robots_content, sitemap[0])
                     # Tuki lahko se od sitemapa dodamo linke
-
-        # Duplicate checking
+        
+        # PAGE DATABASE INSERTION
+        page_type = "HTML"
+        
+        # Duplicat Checking
         page_hash = self.get_hash(url)
-        if self.db_controller.is_duplicate(page_hash):
-            print("Page is a duplicate!")
-            return
+        if not self.db_controller.is_duplicate(page_hash):
+            html_content = ""
+            page_type = "DUPLICATE"
 
-        # Manjka se page id
-        self.db_controller.insert_hash(page_hash, ???)       
-        
-        
-        
-        
-        
-        
-        
-        
-        # Inserting page to database
-        self.db_controller.insert_page(url=url, page_type_code='HTML', http_status_code=200)
+        if content_type != "text/html":
+            html_content = ""
+            page_type = "BINARY"
 
+        site_id = self.db_controller.get_site(domain)
+        if site_id == -1:
+            print("Internal error. Site must be valid in order to insert pages")
+
+        accessedTime = datetime.now().isoformat()
+        page_id = self.db_controller.insert_page(url=url, page_type_code=page_type, http_status_code=status_code, html_content=html_content, site_id=site_id, accessed_time=accessedTime)
+
+        if page_id is None:
+            print("Internal error. Page already exists!")
+
+        # Insert HASH
+        self.db_controller.insert_hash(page_hash, page_id)                 
+      
         # Parsing links
         for element in self.web_driver.find_elements(By.TAG_NAME, 'a'):
             link = element.get_attribute("href")
