@@ -12,7 +12,7 @@ class DatabaseController:
     # TABLE SITE
 
     def insert_site(self, domain, robots_content, sitemap_content):
-        with lock: 
+        with lock:
             cur = self.connection.cursor()
             cur.execute("INSERT INTO crawldb.site(domain, robots_content, sitemap_content)"
                         "VALUES (%s, %s, %s)", (domain, robots_content, sitemap_content))
@@ -50,7 +50,7 @@ class DatabaseController:
                 robots = result[0][0]
 
             cur.close()
-            return robots      
+            return robots
 
     # TABLE PAGE
 
@@ -63,23 +63,23 @@ class DatabaseController:
 #             print(f"Log: inserted page {url} with {page_type_code} type and {http_status_code} status into database")
 #             cur.close()
 
-        def insert_page(self, url, page_type_code, http_status_code, html_content, site_id, accessed_time):
-            with lock:
-                cur = self.connection.cursor()
-                # cur.execute("INSERT INTO crawldb.page(url, page_type_code, html_content, http_status_code,accessed_time, site_id)"
-                #             "VALUES (%s, %s, %s, %s, %s, %s)", (url, page_type_code, html_content, http_status_code, accessed_time, site_id)
-                #             )
-                cur.execute(
-                    "INSERT INTO crawldb.page (site_id, page_type_code, url, html_content, http_status_code, accessed_time) VALUES ((SELECT id FROM crawldb.site WHERE id=%s),(SELECT code FROM crawldb.page_type WHERE code=%s),%s,%s,%s,%s) RETURNING id;",
-                    (site_id, page_type_code, url, html_content, http_status_code, accessed_time)
-                )
-                print(f"Log: inserted page {url} with {page_type_code} type and {http_status_code} status into database")
-                result = cur.fetchall()
-                page_id = None
-                if result:
-                    page_id = result[0][0]
-                cur.close()
-                return page_id
+    def insert_page(self, url, page_type_code, http_status_code, html_content, site_id, accessed_time):
+        with lock:
+            cur = self.connection.cursor()
+            # cur.execute("INSERT INTO crawldb.page(url, page_type_code, html_content, http_status_code,accessed_time, site_id)"
+            #             "VALUES (%s, %s, %s, %s, %s, %s)", (url, page_type_code, html_content, http_status_code, accessed_time, site_id)
+            #             )
+            cur.execute(
+                "INSERT INTO crawldb.page (site_id, page_type_code, url, html_content, http_status_code, accessed_time) VALUES ((SELECT id FROM crawldb.site WHERE id=%s),(SELECT code FROM crawldb.page_type WHERE code=%s),%s,%s,%s,%s) RETURNING id;",
+                (site_id, page_type_code, url, html_content, http_status_code, accessed_time)
+            )
+            print(f"Log: inserted page {url} with {page_type_code} type and {http_status_code} status into database")
+            result = cur.fetchall()
+            page_id = None
+            if result:
+                page_id = result[0][0]
+            cur.close()
+            return page_id
 
     def print_pages(self):
         print(f"Log: Pages got from database")
@@ -119,7 +119,7 @@ class DatabaseController:
             cur.execute("INSERT INTO crawldb.link(from_page, to_page)"
                         "VALUES (%s,%s)", (from_page, to_page))
 
-            print(f"Log: inserted image {filename} with {content_type} type into database")
+            print(f"Log: inserted link with from_page {from_page} and to_page {to_page} into database")
             cur.close()
     
     # HASHING CODE
@@ -152,6 +152,14 @@ class DatabaseController:
     
     def close(self):
         self.connection.close()
+
+    def url_exists(self, url):
+        with lock:
+            cur = self.connection.cursor()
+            cur.execute("SELECT EXISTS(SELECT 1 from crawldb.page WHERE url=%s);", (url,))
+            result = cur.fetchall()[0][0]
+            cur.close()
+            return result
 
 
 # Usage

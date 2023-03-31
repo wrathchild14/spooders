@@ -8,6 +8,7 @@ import re
 from datetime import datetime
 
 from selenium import webdriver
+from selenium.common import WebDriverException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -97,6 +98,10 @@ class Crawler:
     def crawl_page(self, url):
         print("Crawling current page: " + url)
 
+        if self.db_controller.url_exists(url):
+            print(f"Log: url {url} exists, skipping...")
+            return
+
         if self.is_spider_trap(url):
             print("Spider trap detected, exiting URL...")
             return
@@ -127,7 +132,15 @@ class Crawler:
                     return               
             
         # Retrieve page
-        self.web_driver.get(url)
+        try:
+            self.web_driver.get(url)
+        except WebDriverException:
+            print(f"Exception: WebDriverException for {url}, skipping...")
+            return
+        except:
+            print(f"Exception: default for {url}, skipping...")
+            return
+
         # Timeout needed for Web page to render
         time.sleep(self.timeout)
         html = self.web_driver.page_source
@@ -141,7 +154,7 @@ class Crawler:
             # INSERT SITE INTO DATABASE
             if robots_content:
                 sitemap = self.get_sitemap(robots_content)
-                if sitemap is None:
+                if not sitemap:
                     print("Error cannot add site to container as the sitemap is not inside robots.txt")
                 else:
                     self.db_controller.insert_site(domain, robots_content, sitemap[0])
@@ -151,6 +164,7 @@ class Crawler:
         page_type = "HTML"
         
         # Duplicat Checking
+        html_content = ""
         page_hash = self.get_hash(url)
         if self.db_controller.is_duplicate(page_hash):
             html_content = ""
@@ -171,16 +185,19 @@ class Crawler:
             print("Internal error. Page already exists!")
 
         # Insert HASH
-        self.db_controller.insert_hash(page_hash, page_id)        
-      
+        self.db_controller.insert_hash(page_id=page_id, page_hash=page_hash)
+
         # Parsing href links
         for element in self.web_driver.find_elements(By.TAG_NAME, 'a'):
-            link = element.get_attribute("href")
-            self.frontier.add_url(link)
+            try:
+                link = element.get_attribute("href")
+                self.frontier.add_url(link)
+            except:
+                print(f"Exception: on {element} element")
 
         # Parsing onclick links
-        for element in self.web_driver.find_elements(By.XPATH, "//*[@onclick]"):
-            link = element.get_attribute("onclick")
+        # for element in self.web_driver.find_elements(By.XPATH, "//*[@onclick]"):
+        #     link = element.get_attribute("onclick")
             #TODO
             #print("onclick: " + str(link))
             #self.frontier.add_url(link)   
