@@ -11,7 +11,7 @@ class DatabaseController:
 
     # TABLE SITE
 
-    def insert_site(self, domain: str, robots_content: str = '', sitemap_content: str = ''):
+    def insert_site(self, domain, robots_content, sitemap_content):
         with lock: 
             cur = self.connection.cursor()
             cur.execute("INSERT INTO crawldb.site(domain, robots_content, sitemap_content)"
@@ -54,7 +54,7 @@ class DatabaseController:
 
     # TABLE PAGE
 
-    def insert_page(self, url: str, page_type_code: str, http_status_code: int, html_content: str = ''):
+    def insert_page(self, url, page_type_code, http_status_code, html_content):
         with lock:
             cur = self.connection.cursor()
             cur.execute("INSERT INTO crawldb.page(url, page_type_code, html_content, http_status_code,accessed_time)"
