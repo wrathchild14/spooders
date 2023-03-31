@@ -85,12 +85,15 @@ if __name__ == '__main__':
     seed_urls = SEED_URLS
     frontier = Frontier(seed_urls)
 
-    # Create multiple workers in parallel
-    workers = []
-    for i in range(NUMBER_OF_WORKERS):
-        worker = threading.Thread(target=crawler, args=(i, frontier))
-        # Start thread
-        worker.start()
-        workers.append(worker)
-    for worker in workers:
-        worker.join()
+    if NUMBER_OF_WORKERS > 1:
+        # Create multiple workers in parallel
+        workers = []
+        for i in range(NUMBER_OF_WORKERS):
+            worker = threading.Thread(target=crawler, args=(i, frontier))
+            # Start thread
+            worker.start()
+            workers.append(worker)
+        for worker in workers:
+            worker.join()
+    else:
+        crawler(0, frontier)

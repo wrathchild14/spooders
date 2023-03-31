@@ -5,7 +5,7 @@ lock = threading.Lock()
 
 
 class DatabaseController:
-    def __init__(self, host="localhost", user="User", password="SecretPassword"):
+    def __init__(self, host="localhost", user="user", password="SecretPassword"):
         self.connection = psycopg2.connect(host=host, user=user, password=password)
         self.connection.autocommit = True
 

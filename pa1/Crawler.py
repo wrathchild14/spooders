@@ -59,7 +59,7 @@ class Crawler:
             print("robots.txt is not in container!")
             # Container with current domain does not have robots.txt so get it and insert it
             robots_txt = self.get_robots_txt_from_domain(domain)
-            if robots_content is not None:
+            if robots_txt is not None:
                 print("Successfully retrived robots.txt!")                
                 return robots_txt
             else:
@@ -171,12 +171,19 @@ class Crawler:
             print("Internal error. Page already exists!")
 
         # Insert HASH
-        self.db_controller.insert_hash(page_hash, page_id)                 
+        self.db_controller.insert_hash(page_hash, page_id)        
       
-        # Parsing links
+        # Parsing href links
         for element in self.web_driver.find_elements(By.TAG_NAME, 'a'):
             link = element.get_attribute("href")
-            self.frontier.add_url(link)        
+            self.frontier.add_url(link)
+
+        # Parsing onclick links
+        for element in self.web_driver.find_elements(By.XPATH, "//*[@onclick]"):
+            link = element.get_attribute("onclick")
+            #TODO
+            #print("onclick: " + str(link))
+            #self.frontier.add_url(link)   
 
     def StopCrawler(self):
         self.web_driver.close()

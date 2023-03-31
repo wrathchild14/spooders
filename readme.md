@@ -50,3 +50,5 @@ docker run --name postgresql-wier -e POSTGRES_PASSWORD=SecretPassword -e POSTGRE
 ```
 python pa1/main.py
 ```
+
+Change the NUMBER_OF_WORKERS parameter in ProjectConfig. 
