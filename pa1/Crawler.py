@@ -152,7 +152,7 @@ class Crawler:
         
         # Duplicat Checking
         page_hash = self.get_hash(url)
-        if not self.db_controller.is_duplicate(page_hash):
+        if self.db_controller.is_duplicate(page_hash):
             html_content = ""
             page_type = "DUPLICATE"
 
