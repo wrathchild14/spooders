@@ -54,14 +54,32 @@ class DatabaseController:
 
     # TABLE PAGE
 
-    def insert_page(self, url, page_type_code, http_status_code, html_content):
-        with lock:
-            cur = self.connection.cursor()
-            cur.execute("INSERT INTO crawldb.page(url, page_type_code, html_content, http_status_code,accessed_time)"
-                        "VALUES (%s, %s, %s, %s, now())", (url, page_type_code, html_content, http_status_code))
+#     def insert_page(self, url, page_type_code, http_status_code, html_content):
+#         with lock:
+#             cur = self.connection.cursor()
+#             cur.execute("INSERT INTO crawldb.page(url, page_type_code, html_content, http_status_code,accessed_time)"
+#                         "VALUES (%s, %s, %s, %s, now())", (url, page_type_code, html_content, http_status_code))
 
-            print(f"Log: inserted page {url} with {page_type_code} type and {http_status_code} status into database")
-            cur.close()
+#             print(f"Log: inserted page {url} with {page_type_code} type and {http_status_code} status into database")
+#             cur.close()
+
+        def insert_page(self, url, page_type_code, http_status_code, html_content, site_id, accessed_time):
+            with lock:
+                cur = self.connection.cursor()
+                # cur.execute("INSERT INTO crawldb.page(url, page_type_code, html_content, http_status_code,accessed_time, site_id)"
+                #             "VALUES (%s, %s, %s, %s, %s, %s)", (url, page_type_code, html_content, http_status_code, accessed_time, site_id)
+                #             )
+                cur.execute(
+                    "INSERT INTO crawldb.page (site_id, page_type_code, url, html_content, http_status_code, accessed_time) VALUES ((SELECT id FROM crawldb.site WHERE id=%s),(SELECT code FROM crawldb.page_type WHERE code=%s),%s,%s,%s,%s) RETURNING id;",
+                    (site_id, page_type_code, url, html_content, http_status_code, accessed_time)
+                )
+                print(f"Log: inserted page {url} with {page_type_code} type and {http_status_code} status into database")
+                result = cur.fetchall()
+                page_id = None
+                if result:
+                    page_id = result[0][0]
+                cur.close()
+                return page_id
 
     def print_pages(self):
         print(f"Log: Pages got from database")
