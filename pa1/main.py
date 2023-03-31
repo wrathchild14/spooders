@@ -7,6 +7,7 @@ from url_normalize import url_normalize
 from Crawler import Crawler
 from ProjectConfig import *
 
+
 class Frontier:
     def __init__(self, seed):
         self.frontier = list(seed)
@@ -68,17 +69,19 @@ class Frontier:
     def print_frontier(self):
         print(self.frontier)
 
+
 def crawler(thread_index, frontier):
     # Create crawler
     crawler = Crawler(PROJECT_NAME, TIMEOUT, thread_index, frontier)
 
     while not frontier.is_empty():
         # Get URL from the frontier
-        current_url = frontier.pop_element()        
+        current_url = frontier.pop_element()
         # Fetch URL to crawler and start crawling page:
         crawler.crawl_page(current_url)
 
     crawler.StopCrawler()
+
 
 if __name__ == '__main__':
     # Seed urls to frontier

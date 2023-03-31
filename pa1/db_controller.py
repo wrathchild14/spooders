@@ -54,14 +54,14 @@ class DatabaseController:
 
     # TABLE PAGE
 
-#     def insert_page(self, url, page_type_code, http_status_code, html_content):
-#         with lock:
-#             cur = self.connection.cursor()
-#             cur.execute("INSERT INTO crawldb.page(url, page_type_code, html_content, http_status_code,accessed_time)"
-#                         "VALUES (%s, %s, %s, %s, now())", (url, page_type_code, html_content, http_status_code))
+    #     def insert_page(self, url, page_type_code, http_status_code, html_content):
+    #         with lock:
+    #             cur = self.connection.cursor()
+    #             cur.execute("INSERT INTO crawldb.page(url, page_type_code, html_content, http_status_code,accessed_time)"
+    #                         "VALUES (%s, %s, %s, %s, now())", (url, page_type_code, html_content, http_status_code))
 
-#             print(f"Log: inserted page {url} with {page_type_code} type and {http_status_code} status into database")
-#             cur.close()
+    #             print(f"Log: inserted page {url} with {page_type_code} type and {http_status_code} status into database")
+    #             cur.close()
 
     def insert_page(self, url, page_type_code, http_status_code, html_content, site_id, accessed_time):
         with lock:
@@ -121,9 +121,9 @@ class DatabaseController:
 
             print(f"Log: inserted link with from_page {from_page} and to_page {to_page} into database")
             cur.close()
-    
+
     # HASHING CODE
-    
+
     def is_duplicate(self, page_hash):
         with lock:
             cur = self.connection.cursor()
@@ -147,9 +147,9 @@ class DatabaseController:
             )
             cur.close()
             return
-    
+
     # CLOSE CONNECTION
-    
+
     def close(self):
         self.connection.close()
 
