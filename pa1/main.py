@@ -25,18 +25,16 @@ class Frontier:
         self.visited.add(url)
 
     def is_visited(self, url):
-        if url in self.visited:
-            return True
-        else:
-            return False
+        return url in self.visited
 
     def add_url(self, url):
         url = self.canon_url(url)
-        if url != None and ".gov.si" in url and not self.is_visited(url):
-            self.frontier.append(url)
+        if url is not None and "gov.si" in url and not self.is_visited(url):
+            if url not in self.frontier:
+                self.frontier.append(url)
 
     def canon_url(self, url):
-        if url == None or url == "":
+        if url is None or url == "":
             return None
         if "javascript:" in url:
             return None

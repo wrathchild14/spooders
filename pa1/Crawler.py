@@ -99,10 +99,6 @@ class Crawler:
     def crawl_page(self, url):
         print("Crawling current page: " + url)
 
-        if self.db_controller.url_exists(url):
-            print(f"Log: url {url} exists, skipping...")
-            return
-
         if self.is_spider_trap(url):
             print("Spider trap detected, exiting URL...")
             return

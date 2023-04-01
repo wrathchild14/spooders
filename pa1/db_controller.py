@@ -153,14 +153,6 @@ class DatabaseController:
     def close(self):
         self.connection.close()
 
-    def url_exists(self, url):
-        with lock:
-            cur = self.connection.cursor()
-            cur.execute("SELECT EXISTS(SELECT 1 from crawldb.page WHERE url=%s);", (url,))
-            result = cur.fetchall()[0][0]
-            cur.close()
-            return result
-
 
 # Usage
 if __name__ == '__main__':
