@@ -230,11 +230,14 @@ class Crawler:
                 elif extension == ".GIF" or extension == ".gif":
                     self.db_controller.insert_image(page_id, file_name, "GIF", b"None", accessedTime)
         
+        all_links = []
         # Parsing href links
         for element in self.web_driver.find_elements(By.TAG_NAME, 'a'):
             try:
                 link = element.get_attribute("href")
-                self.frontier.add_url(link)
+                if link != None:
+                    #self.frontier.add_url(link)
+                    all_links.append(link)
             except:
                 print(f"Exception: on {element} element")
 
@@ -246,8 +249,25 @@ class Crawler:
                 # Extend relative URLs before adding to frontier
                 if link.startswith("#") or link.startswith("/#"):
                     continue
-                elif not link.startswith('http:') or not link.startswith('https:'):
+                elif not link.startswith("http:") or not link.startswith("https:"):
                     link = urljoin(url, link)
+                #self.frontier.add_url(link)
+                all_links.append(link)
+
+        # Check for non-html content (.pdf, .doc, .docx, .ppt and .pptx) and insert to page_data table,
+        # otherwise insert to frontier
+        for link in all_links:
+            if link.endswith(".pdf"):
+                self.db_controller.insert_page_data(page_id, "PDF", b"None")
+            elif link.endswith(".doc"):
+                self.db_controller.insert_page_data(page_id, "DOC", b"None")
+            elif link.endswith(".docx"):
+                self.db_controller.insert_page_data(page_id, "DOCX", b"None")
+            elif link.endswith(".ppt"):
+                self.db_controller.insert_page_data(page_id, "PPT", b"None")
+            elif link.endswith(".pptx"):
+                self.db_controller.insert_page_data(page_id, "PPTX", b"None")
+            else: # html content
                 self.frontier.add_url(link)
 
     def StopCrawler(self):
