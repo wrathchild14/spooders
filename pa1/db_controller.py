@@ -136,7 +136,7 @@ class DatabaseController:
             if result:
                 status = True
             cur.close()
-            return status
+            return [status, result]
 
     def insert_hash(self, page_id, page_hash):
         with lock:

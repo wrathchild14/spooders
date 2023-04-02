@@ -186,7 +186,8 @@ class Crawler:
         # Duplicat Checking
         html_content = ""
         page_hash = self.get_hash(url)
-        if self.db_controller.is_duplicate(page_hash):
+        [duplicate_status, duplicate_id] = self.db_controller.is_duplicate(page_hash)
+        if duplicate_status:
             html_content = ""
             page_type = "DUPLICATE"
 
@@ -206,7 +207,12 @@ class Crawler:
 
         if page_id is None:
              # Kva je tle fora??
-            print("Internal error. Page already exists!")           
+            print("Internal error. Page already exists!")
+
+        # Link page if duplicate
+        if page_type == "DUPLICATE":
+            self.db_controller.insert_link(page_id, duplicate_id)
+            return # Skip processing since duplicate page already parsed
 
         # Insert HASH
         self.db_controller.insert_hash(page_id=page_id, page_hash=page_hash)
