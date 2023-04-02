@@ -1,7 +1,7 @@
 import hashlib
 import urllib
 from urllib import request, parse
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 import time
 import socket
 import re
@@ -21,7 +21,7 @@ from db_controller import DatabaseController
 chrome_options = Options()
 chrome_options.add_argument("user-agent=fri-wier-spoders")
 chrome_options.add_argument("--headless")
-
+chrome_options.add_argument('log-level=1') # disables common info console logs
 
 class Crawler:
     def __init__(self, project_name, timeout, thread_instance, frontier):
@@ -194,11 +194,16 @@ class Crawler:
                 print(f"Exception: on {element} element")
 
         # Parsing onclick links
-        # for element in self.web_driver.find_elements(By.XPATH, "//*[@onclick]"):
-        #     link = element.get_attribute("onclick")
-        #     TODO
-        #     print("onclick: " + str(link))
-        #     self.frontier.add_url(link)
+        for element in self.web_driver.find_elements(By.XPATH, "//*[@onclick]"):
+            link = element.get_attribute("onclick")
+            if "location.href" in link or "document.location" in link:
+                link = link.split("=")[1].strip()
+                # Extend relative URLs before adding to frontier
+                if link.startswith("#") or link.startswith("/#"):
+                    continue
+                elif not link.startswith('http:') or not link.startswith('https:'):
+                    link = urljoin(url, link)
+                self.frontier.add_url(link)
 
     def StopCrawler(self):
         self.web_driver.close()
