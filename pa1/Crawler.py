@@ -1,4 +1,5 @@
 import hashlib
+import os
 import urllib
 from urllib import request, parse
 from urllib.parse import urlparse, urljoin
@@ -6,6 +7,7 @@ import time
 import socket
 import re
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 from selenium import webdriver
 from selenium.common import WebDriverException
@@ -58,7 +60,7 @@ class Crawler:
         # Check if Robots.txt is already in container:
         robots_txt = self.db_controller.get_robots_txt(domain)
         if robots_txt is None:
-            print("robots.txt is not in container!")
+            print("Robots.txt is not in container!")
             # Container with current domain does not have robots.txt so get it and insert it
             robots_txt = self.get_robots_txt_from_domain(domain)
             if robots_txt is not None:
@@ -96,6 +98,21 @@ class Crawler:
                 sitemap_urls.append(sitemap_url)
         return sitemap_urls
 
+    def get_image_links(self, url, html_content, robots_content):
+        disallowed_paths = set()
+        if robots_content is not None:
+            disallowed_paths = self.get_robot_disallowed_paths(robots_content)
+
+        html = BeautifulSoup(html_content, 'html.parser')
+        img_tags = html.find_all('img')
+        img_links = []
+        for img in img_tags:
+            img_link = img.get('src')
+            if img_link is not None and not any(path in img_link for path in disallowed_paths):
+                img_links.append(urljoin(url, img_link))
+
+        return img_links
+    
     def crawl_page(self, url):
         print("Crawling current page: " + url)
 
@@ -151,14 +168,20 @@ class Crawler:
             # INSERT SITE INTO DATABASE
             if robots_content:
                 sitemap = self.get_sitemap(robots_content)
-                if not sitemap:
+                if len(sitemap) == 0:
                     print("Error cannot add site to container as the sitemap is not inside robots.txt")
+                    print("Adding empty sitemap")
+                    self.db_controller.insert_site(domain, robots_content, "")
                 else:
                     self.db_controller.insert_site(domain, robots_content, sitemap[0])
                     # Tuki lahko se od sitemapa dodamo linke
+            else:
+                # Site has no robots.txt add it anyway but with empty robots and sitemap
+                self.db_controller.insert_site(domain, "", "")
 
         # PAGE DATABASE INSERTION
         page_type = "HTML"
+        html_content = html
 
         # Duplicat Checking
         html_content = ""
@@ -173,18 +196,40 @@ class Crawler:
 
         site_id = self.db_controller.get_site(domain)
         if site_id == -1:
+            # If this happens we should exit?
             print("Internal error. Site must be valid in order to insert pages")
+            return
 
         accessedTime = datetime.now().isoformat()
         page_id = self.db_controller.insert_page(url=url, page_type_code=page_type, http_status_code=status_code,
                                                  html_content=html_content, site_id=site_id, accessed_time=accessedTime)
 
         if page_id is None:
-            print("Internal error. Page already exists!")
+             # Kva je tle fora??
+            print("Internal error. Page already exists!")           
 
         # Insert HASH
         self.db_controller.insert_hash(page_id=page_id, page_hash=page_hash)
 
+        # IMAGE INSERTION
+
+        img_links = self.get_image_links(url, html_content, robots_content)
+        if len(img_links) == 0:
+            pass
+        else:
+            for image_url in img_links:
+                extension = os.path.splitext(image_url)[1]
+                file_name, ext = os.path.splitext(image_url)
+                if len(file_name) > 255:
+                    print("Error image link is too big to insert in database. Skipping image...")
+                    continue
+                if extension == ".PNG" or extension == ".png":
+                    self.db_controller.insert_image(page_id, file_name, "PNG", b"None", accessedTime)
+                elif extension == ".jpg" or extension == ".JPG" or extension == ".jpeg" or extension == ".JPEG":
+                    self.db_controller.insert_image(page_id, file_name, "JPG", b"None", accessedTime)
+                elif extension == ".GIF" or extension == ".gif":
+                    self.db_controller.insert_image(page_id, file_name, "GIF", b"None", accessedTime)
+        
         # Parsing href links
         for element in self.web_driver.find_elements(By.TAG_NAME, 'a'):
             try:
