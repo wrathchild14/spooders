@@ -6,7 +6,7 @@ from url_normalize import url_normalize
 
 from Crawler import Crawler
 from ProjectConfig import *
-
+from db_controller import DatabaseController
 
 class Frontier:
     def __init__(self, seed):
@@ -68,9 +68,9 @@ class Frontier:
         print(self.frontier)
 
 
-def crawler(thread_index, frontier):
+def crawler(thread_index, frontier, db_controller):
     # Create crawler
-    crawler = Crawler(PROJECT_NAME, TIMEOUT, thread_index, frontier)
+    crawler = Crawler(PROJECT_NAME, TIMEOUT, thread_index, frontier, db_controller)
 
     while not frontier.is_empty():
         # Get URL from the frontier
@@ -85,16 +85,17 @@ if __name__ == '__main__':
     # Seed urls to frontier
     seed_urls = SEED_URLS
     frontier = Frontier(seed_urls)
+    db_controller = DatabaseController()
 
     if NUMBER_OF_WORKERS > 1:
         # Create multiple workers in parallel
         workers = []
         for i in range(NUMBER_OF_WORKERS):
-            worker = threading.Thread(target=crawler, args=(i, frontier))
+            worker = threading.Thread(target=crawler, args=(i, frontier, db_controller))
             # Start thread
             worker.start()
             workers.append(worker)
         for worker in workers:
             worker.join()
     else:
-        crawler(0, frontier)
+        crawler(0, frontier, db_controller)

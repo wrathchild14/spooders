@@ -17,8 +17,6 @@ from selenium.webdriver.common.by import By
 
 from webdriver_manager.chrome import ChromeDriverManager
 
-from db_controller import DatabaseController
-
 # Properties to use selenium for proper JS rendering
 chrome_options = Options()
 chrome_options.add_argument("user-agent=fri-wier-spoders")
@@ -26,12 +24,12 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument('log-level=1') # disables common info console logs
 
 class Crawler:
-    def __init__(self, project_name, timeout, thread_instance, frontier):
+    def __init__(self, project_name, timeout, thread_instance, frontier, db_controller):
         self.project_name = project_name
         self.instance = thread_instance
         self.timeout = timeout
         self.web_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-        self.db_controller = DatabaseController()
+        self.db_controller = db_controller
         self.frontier = frontier
 
     def is_spider_trap(self, url):
