@@ -119,10 +119,94 @@ class DatabaseController:
             cur.close()
             return page_id
 
+    # Page already created as FRONTIER, so we update it
+    def update_page(self, page_id, url, page_type_code, http_status_code, html_content, site_id, accessed_time):
+        with lock:
+            cur = self.connection.cursor()
+            cur.execute(
+                "UPDATE crawldb.page SET url=%s, page_type_code=%s, http_status_code=%s, html_content=%s, site_id=%s, accessed_time=%s WHERE id=%s;",
+                (url, page_type_code, http_status_code, html_content, site_id, accessed_time, page_id)
+            )
+            cur.close()
+
+    def get_page(self, url):
+        with lock:
+            cur = self.connection.cursor()
+            cur.execute(
+                "SELECT * FROM crawldb.page WHERE url=%s;",
+                (url,)
+            )
+            # Check if array is empty, meaning we didn't find the page already present in the table
+            page_id = -1
+            result = cur.fetchall()
+            if result:
+                page_id = result[0][0]
+
+            cur.close()
+            return page_id
+
     def print_pages(self):
         print(f"Log: Pages got from database")
         cur = self.connection.cursor()
         cur.execute("SELECT * FROM crawldb.page")
+        fetched_pages = cur.fetchall()
+        for page in fetched_pages:
+            print(page)
+    
+    # FRONTIER (page with page_type_code FRONTIER)
+
+    # Returns True if no pages with page_type_code FRONTIER in the database
+    def is_frontier_empty(self):
+        with lock:
+            cur = self.connection.cursor()
+            cur.execute(
+                "SELECT * FROM crawldb.page WHERE page_type_code=%s;",
+                ("FRONTIER",)
+            )
+            fetched_pages = cur.fetchall()
+            cur.close()
+            return len(fetched_pages)==0
+    
+    def insert_frontier(self, url):
+        with lock:
+            cur = self.connection.cursor()
+            cur.execute(
+                "INSERT INTO crawldb.page (page_type_code, url) VALUES (%s,%s);",
+                ("FRONTIER", url)
+            )
+            print(f"Log: inserted page {url} with FRONTIER type into database")
+            cur.close()
+    
+    # Returns id and url from the first page in frontier and remove the page_type_code FRONTIER
+    def pop_frontier(self):
+        with lock:
+            cur = self.connection.cursor()
+            cur.execute(
+                "SELECT id, url FROM crawldb.page WHERE page_type_code=%s LIMIT 1;",
+                ("FRONTIER",)
+            )
+            frontier = cur.fetchone()
+            if frontier is None:
+                return
+            # print(frontier)
+            cur.close()
+
+            cur = self.connection.cursor()
+            cur.execute(
+                "UPDATE crawldb.page SET page_type_code=%s WHERE id=%s;",
+                (None,frontier[0])
+            )
+            cur.close()
+
+            return frontier
+
+    def print_frontier(self):
+        print(f"Log: Frontier pages got from database")
+        cur = self.connection.cursor()
+        cur.execute(
+                "SELECT id, url FROM crawldb.page WHERE page_type_code=%s;",
+                ("FRONTIER",)
+            )
         fetched_pages = cur.fetchall()
         for page in fetched_pages:
             print(page)

@@ -2,7 +2,8 @@ import hashlib
 import os
 import urllib
 from urllib import request, parse
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, urldefrag
+from url_normalize import url_normalize
 import time
 import socket
 import re
@@ -24,15 +25,13 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument('log-level=1') # disables common info console logs
 
 class Crawler:
-    def __init__(self, project_name, timeout, server_timeout, thread_instance, frontier, db_controller):
+    def __init__(self, project_name, timeout, server_timeout, thread_instance, db_controller):
         self.project_name = project_name
         self.instance = thread_instance
         self.timeout = timeout
         self.server_timeout = server_timeout
         self.web_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         self.db_controller = db_controller
-        self.frontier = frontier
-
 
     def is_spider_trap(self, url):
         return True if "mailto:" in url or "tel:" in url or len(url) > 1000 else False
@@ -125,7 +124,38 @@ class Crawler:
             time.sleep(1)
             self.check_accessed_time(domain_accessed_time, ip_accessed_time)
 
-    def crawl_page(self, url):
+    def canon_url(self, url):
+        if url is None or url == "":
+            return None
+        if "javascript:" in url:
+            return None
+        if url[0] == "#":
+            return None
+        if url == "/":
+            return None
+        if url.startswith('https://'):
+            url = url[8:]
+        if url.startswith('http://'):
+            url = url[7:]
+        if url.startswith("www."):
+            url = url[4:]
+            url = "http://" + str(url)
+        if not url.startswith('http://'):
+            url = "http://" + str(url)
+        # Remove #
+        url = urldefrag(url)[0]
+        url = str(url)
+        # Normalize
+        url = url_normalize(url)
+        # Remove filtering
+        if "?" in url:
+            url = url.split("?")[0]
+        # Remove trailing slash.
+        if url.endswith('/'):
+            url = url[:-1]
+        return url
+
+    def crawl_page(self, url, page_id):
         print("Crawling current page: " + url)
 
         if self.is_spider_trap(url):
@@ -215,7 +245,7 @@ class Crawler:
             return
 
         accessedTime = datetime.now().isoformat()
-        page_id = self.db_controller.insert_page(url=url, page_type_code=page_type, http_status_code=status_code,
+        self.db_controller.update_page(page_id=page_id, url=url, page_type_code=page_type, http_status_code=status_code,
                                                  html_content=html_content, site_id=site_id, accessed_time=accessedTime)
 
         if page_id is None:
@@ -255,7 +285,6 @@ class Crawler:
             try:
                 link = element.get_attribute("href")
                 if link != None:
-                    #self.frontier.add_url(link)
                     all_links.append(link)
             except:
                 print(f"Exception: on {element} element")
@@ -270,7 +299,6 @@ class Crawler:
                     continue
                 elif not link.startswith("http:") or not link.startswith("https:"):
                     link = urljoin(url, link)
-                #self.frontier.add_url(link)
                 all_links.append(link)
 
         # Check for non-html content (.pdf, .doc, .docx, .ppt and .pptx) and insert to page_data table,
@@ -287,7 +315,11 @@ class Crawler:
             elif link.endswith(".pptx"):
                 self.db_controller.insert_page_data(page_id, "PPTX", b"None")
             else: # html content
-                self.frontier.add_url(link)
+                link = self.canon_url(link)
+                if link is not None and "gov.si" in link:
+                    # Check if page already exists, otherwise insert
+                    if self.db_controller.get_page(link) == -1:
+                        self.db_controller.insert_frontier(url=link)
 
     def StopCrawler(self):
         self.web_driver.close()
