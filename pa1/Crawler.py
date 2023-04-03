@@ -32,6 +32,7 @@ class Crawler:
         self.db_controller = db_controller
         self.frontier = frontier
 
+
     def is_spider_trap(self, url):
         return True if "mailto:" in url or "tel:" in url or len(url) > 1000 else False
 
