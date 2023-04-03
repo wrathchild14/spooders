@@ -70,7 +70,7 @@ class Frontier:
 
 def crawler(thread_index, frontier, db_controller):
     # Create crawler
-    crawler = Crawler(PROJECT_NAME, TIMEOUT, thread_index, frontier, db_controller)
+    crawler = Crawler(PROJECT_NAME, TIMEOUT, SERVER_TIMEOUT, thread_index, frontier, db_controller)
 
     while not frontier.is_empty():
         # Get URL from the frontier

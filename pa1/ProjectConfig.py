@@ -1,4 +1,5 @@
 TIMEOUT = 5
+SERVER_TIMEOUT = 6
 PROJECT_NAME = 'fri-wier-spoders'
 
 NUMBER_OF_WORKERS = 1

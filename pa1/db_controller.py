@@ -11,11 +11,11 @@ class DatabaseController:
 
     # TABLE SITE
 
-    def insert_site(self, domain, robots_content, sitemap_content):
+    def insert_site(self, domain, robots_content, sitemap_content, ip, accessed_time):
         with lock:
             cur = self.connection.cursor()
-            cur.execute("INSERT INTO crawldb.site(domain, robots_content, sitemap_content)"
-                        "VALUES (%s, %s, %s)", (domain, robots_content, sitemap_content))
+            cur.execute("INSERT INTO crawldb.site(domain, robots_content, sitemap_content, ip_address, last_accessed)"
+                        "VALUES (%s, %s, %s, %s, %s)", (domain, robots_content, sitemap_content, ip, accessed_time))
 
             print(f"Log: inserted site with {domain} domain into database")
             cur.close()
@@ -51,6 +51,44 @@ class DatabaseController:
 
             cur.close()
             return robots
+
+    def get_last_accessed_domain(self, domain):
+        with lock:
+            cur = self.connection.cursor()
+            cur.execute(
+                "SELECT last_accessed FROM crawldb.site WHERE domain=%s ORDER BY last_accessed DESC;",
+                (domain,)
+            )
+            result = cur.fetchall()
+            last_accessed = None
+            if result:
+                last_accessed = result[0][0]
+            cur.close()
+            return last_accessed
+
+    def get_last_accessed_ip_address(self, ip_address):
+        with lock:
+            cur = self.connection.cursor()
+            cur.execute(
+                "SELECT last_accessed FROM crawldb.site WHERE ip_address=%s ORDER BY last_accessed DESC;",
+                (ip_address,)
+            )
+            result = cur.fetchall()
+            last_accessed = None
+            if result:
+                last_accessed = result[0][0]
+            cur.close()
+            return last_accessed
+
+    # Updates only if in database
+    def update_site_last_accessed_time(self, domain, ip_address, last_accessed_time):
+        with lock:
+            cur = self.connection.cursor()
+            cur.execute(
+                "UPDATE crawldb.site SET last_accessed=%s WHERE domain=%s OR ip_address=%s;",
+                (last_accessed_time, domain, ip_address)
+            )
+            cur.close()
 
     # TABLE PAGE
 

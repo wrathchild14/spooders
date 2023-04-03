@@ -6,7 +6,7 @@ from urllib.parse import urlparse, urljoin
 import time
 import socket
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
 from selenium import webdriver
@@ -24,10 +24,11 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument('log-level=1') # disables common info console logs
 
 class Crawler:
-    def __init__(self, project_name, timeout, thread_instance, frontier, db_controller):
+    def __init__(self, project_name, timeout, server_timeout, thread_instance, frontier, db_controller):
         self.project_name = project_name
         self.instance = thread_instance
         self.timeout = timeout
+        self.server_timeout = server_timeout
         self.web_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         self.db_controller = db_controller
         self.frontier = frontier
@@ -111,7 +112,19 @@ class Crawler:
                 img_links.append(urljoin(url, img_link))
 
         return img_links
-    
+
+    def check_accessed_time(self, domain_accessed_time, ip_accessed_time):
+        domain_time_diff, ip_time_diff = timedelta(hours=1), timedelta(hours=1)
+        if domain_accessed_time is not None:
+            domain_time_diff = datetime.now() - domain_accessed_time
+        if ip_accessed_time is not None:
+            ip_time_diff = datetime.now() - ip_accessed_time
+        if domain_time_diff <= timedelta(seconds=self.server_timeout) \
+                or ip_time_diff <= timedelta(seconds=self.server_timeout):
+            print("Timout: waiting for 1 second")
+            time.sleep(1)
+            self.check_accessed_time(domain_accessed_time, ip_accessed_time)
+
     def crawl_page(self, url):
         print("Crawling current page: " + url)
 
@@ -119,18 +132,20 @@ class Crawler:
             print("Spider trap detected, exiting URL...")
             return
 
+        # Get domain and ip
+        domain, ip = self.get_domain_and_ip(url)
+        self.check_accessed_time(self.db_controller.get_last_accessed_domain(domain),
+                                 self.db_controller.get_last_accessed_ip_address(ip))
+
         try:
             with urllib.request.urlopen(url) as response:
-                time.sleep(self.timeout)
                 status_code = response.getcode()
                 info = response.info()
                 content_type = info.get_content_type()
+                self.db_controller.update_site_last_accessed_time(domain, ip, datetime.now().isoformat())
         except:
             print("Website cannot be reached!")
             return
-
-        # Get domain and ip
-        domain, ip = self.get_domain_and_ip(url)
 
         # Get robots.txt
         robots_content = self.get_robots_content(domain)
@@ -170,13 +185,13 @@ class Crawler:
                 if len(sitemap) == 0:
                     print("Error cannot add site to container as the sitemap is not inside robots.txt")
                     print("Adding empty sitemap")
-                    self.db_controller.insert_site(domain, robots_content, "")
+                    self.db_controller.insert_site(domain, robots_content, "", ip, datetime.now().isoformat())
                 else:
-                    self.db_controller.insert_site(domain, robots_content, sitemap[0])
+                    self.db_controller.insert_site(domain, robots_content, sitemap[0], ip, datetime.now().isoformat())
                     # Tuki lahko se od sitemapa dodamo linke
             else:
                 # Site has no robots.txt add it anyway but with empty robots and sitemap
-                self.db_controller.insert_site(domain, "", "")
+                self.db_controller.insert_site(domain, "", "", ip, datetime.now().isoformat())
 
         # PAGE DATABASE INSERTION
         page_type = "HTML"
