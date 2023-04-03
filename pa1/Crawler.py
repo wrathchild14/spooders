@@ -184,7 +184,6 @@ class Crawler:
         html_content = html
 
         # Duplicat Checking
-        html_content = ""
         page_hash = self.get_hash(url)
         [duplicate_status, duplicate_id] = self.db_controller.is_duplicate(page_hash)
         if duplicate_status:
