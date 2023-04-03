@@ -318,8 +318,12 @@ class Crawler:
                 link = self.canon_url(link)
                 if link is not None and "gov.si" in link:
                     # Check if page already exists, otherwise insert
-                    if self.db_controller.get_page(link) == -1:
-                        self.db_controller.insert_frontier(url=link)
+                    new_page = self.db_controller.get_page(link)
+                    if new_page == -1:
+                        new_page = self.db_controller.insert_frontier(url=link)
+                    # Add links to link table
+                    if page_id != new_page:
+                        self.db_controller.insert_link(page_id, new_page)
 
     def StopCrawler(self):
         self.web_driver.close()

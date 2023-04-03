@@ -171,11 +171,16 @@ class DatabaseController:
         with lock:
             cur = self.connection.cursor()
             cur.execute(
-                "INSERT INTO crawldb.page (page_type_code, url) VALUES (%s,%s);",
+                "INSERT INTO crawldb.page (page_type_code, url) VALUES (%s,%s) RETURNING id;",
                 ("FRONTIER", url)
             )
             print(f"Log: inserted page {url} with FRONTIER type into database")
+            result = cur.fetchall()
+            page_id = None
+            if result:
+                page_id = result[0][0]
             cur.close()
+            return page_id
     
     # Returns id and url from the first page in frontier and remove the page_type_code FRONTIER
     def pop_frontier(self):
@@ -187,6 +192,7 @@ class DatabaseController:
             )
             frontier = cur.fetchone()
             if frontier is None:
+                cur.close()
                 return
             # print(frontier)
             cur.close()
@@ -237,6 +243,19 @@ class DatabaseController:
 
     def insert_link(self, from_page, to_page):
         with lock:
+            cur = self.connection.cursor()
+            # Check if link already exists
+            cur.execute(
+                "SELECT * FROM crawldb.link WHERE from_page=%s AND to_page=%s;",
+                (from_page,to_page)
+            )
+            # Check if array is empty, meaning we didn't find the link already present in the table
+            result = cur.fetchone()
+            if result:
+                cur.close()
+                return
+            cur.close()
+
             cur = self.connection.cursor()
             cur.execute("INSERT INTO crawldb.link(from_page, to_page)"
                         "VALUES (%s,%s)", (from_page, to_page))
