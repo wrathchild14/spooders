@@ -171,6 +171,9 @@ class Crawler:
                 self.db_controller.update_site_last_accessed_time(domain, ip, datetime.now().isoformat())
         except:
             print("Website cannot be reached!")
+            accessedTime = datetime.now().isoformat()
+            self.db_controller.update_page(page_id=page_id, url=url, page_type_code=None, http_status_code=404,
+                                                 html_content=None, site_id=None, accessed_time=accessedTime)
             return
 
         # Get robots.txt
@@ -184,20 +187,6 @@ class Crawler:
                 if parsed_url.path.startswith(path):
                     print("URL is not allowed by robots.txt")
                     return
-
-        # Retrieve page
-        try:
-            self.web_driver.get(url)
-        except WebDriverException:
-            print(f"Exception: WebDriverException for {url}, skipping...")
-            return
-        except:
-            print(f"Exception: default for {url}, skipping...")
-            return
-
-        # Timeout needed for Web page to render
-        time.sleep(self.timeout)
-        html_content = self.web_driver.page_source
 
         # Check if site is already in database
         status = self.db_controller.get_site(domain)
@@ -218,6 +207,29 @@ class Crawler:
             else:
                 # Site has no robots.txt add it anyway but with empty robots and sitemap
                 self.db_controller.insert_site(domain, "", "", ip, datetime.now().isoformat())
+
+        # Retrieve page
+        try:
+            self.web_driver.get(url)
+        except: # Error occured while rendering page (SSL certificate error, timeout...)
+            if content_type == "text/html":
+                page_type = "HTML"
+            else:
+                page_type = "BINARY"
+            accessedTime = datetime.now().isoformat()
+            self.db_controller.update_page(page_id=page_id, url=url, page_type_code=page_type, http_status_code=500,
+                                                 html_content=None, site_id=None, accessed_time=accessedTime)
+            return
+        """except WebDriverException:
+            print(f"Exception: WebDriverException for {url}...")
+            return
+        except:
+            print(f"Exception: default for {url}...")
+            return"""
+
+        # Timeout needed for Web page to render
+        time.sleep(self.timeout)
+        html_content = self.web_driver.page_source
 
         # PAGE DATABASE INSERTION
         page_type = "HTML"
