@@ -158,10 +158,6 @@ class Crawler:
     def crawl_page(self, url, page_id):
         print("Crawling current page: " + url)
 
-        if self.is_spider_trap(url):
-            print("Spider trap detected, exiting URL...")
-            return
-
         # Get domain and ip
         domain, ip = self.get_domain_and_ip(url)
         self.check_accessed_time(self.db_controller.get_last_accessed_domain(domain),
@@ -201,7 +197,7 @@ class Crawler:
 
         # Timeout needed for Web page to render
         time.sleep(self.timeout)
-        html = self.web_driver.page_source
+        html_content = self.web_driver.page_source
 
         # Check if site is already in database
         status = self.db_controller.get_site(domain)
@@ -225,10 +221,9 @@ class Crawler:
 
         # PAGE DATABASE INSERTION
         page_type = "HTML"
-        html_content = html
 
-        # Duplicat Checking
-        page_hash = self.get_hash(url)
+        # Duplicate Checking
+        page_hash = self.get_hash(html_content)
         [duplicate_status, duplicate_id] = self.db_controller.is_duplicate(page_hash)
         if duplicate_status:
             html_content = ""
@@ -248,13 +243,9 @@ class Crawler:
         self.db_controller.update_page(page_id=page_id, url=url, page_type_code=page_type, http_status_code=status_code,
                                                  html_content=html_content, site_id=site_id, accessed_time=accessedTime)
 
-        if page_id is None:
-             # Kva je tle fora??
-            print("Internal error. Page already exists!")
-
         # Link page if duplicate
         if page_type == "DUPLICATE":
-            self.db_controller.insert_link(page_id, duplicate_id)
+            self.db_controller.insert_link(page_id, duplicate_id[0])
             return # Skip processing since duplicate page already parsed
 
         # Insert HASH
@@ -316,7 +307,7 @@ class Crawler:
                 self.db_controller.insert_page_data(page_id, "PPTX", b"None")
             else: # html content
                 link = self.canon_url(link)
-                if link is not None and "gov.si" in link:
+                if link is not None and "gov.si" in link and not self.is_spider_trap(link):
                     # Check if page already exists, otherwise insert
                     new_page = self.db_controller.get_page(link)
                     if new_page == -1:

@@ -187,7 +187,7 @@ class DatabaseController:
         with lock:
             cur = self.connection.cursor()
             cur.execute(
-                "SELECT id, url FROM crawldb.page WHERE page_type_code=%s LIMIT 1;",
+                "SELECT id, url FROM crawldb.page WHERE page_type_code=%s ORDER BY id ASC LIMIT 1;",
                 ("FRONTIER",)
             )
             frontier = cur.fetchone()
@@ -273,7 +273,7 @@ class DatabaseController:
                 (page_hash,)
             )
             status = False
-            result = cur.fetchall()
+            result = cur.fetchone()
             if result:
                 status = True
             cur.close()
