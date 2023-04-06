@@ -102,7 +102,17 @@ if __name__ == '__main__':
             # Start thread
             worker.start()
             workers.append(worker)
-        for worker in workers:
-            worker.join()
+        
+        # While frontier not empty, check for live threads and start more threads
+        while True:
+            for i in range(NUMBER_OF_WORKERS):
+                workers[i].join(5.0)
+                if not workers[i].is_alive():
+                    # if thread no longer alive, remove from list of threads and create another
+                    print("Log: restarting thread no. " + str(i))
+                    restart_worker = threading.Thread(target=crawler, args=(i, db_controller))
+                    restart_worker.start()
+                    workers[i] = restart_worker
+
     else:
         crawler(0, db_controller)

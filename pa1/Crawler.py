@@ -120,7 +120,7 @@ class Crawler:
             ip_time_diff = datetime.now() - ip_accessed_time
         if domain_time_diff <= timedelta(seconds=self.server_timeout) \
                 or ip_time_diff <= timedelta(seconds=self.server_timeout):
-            print("Timout: waiting for 1 second")
+            print("Timeout: waiting for 1 second")
             time.sleep(1)
             self.check_accessed_time(domain_accessed_time, ip_accessed_time)
 
