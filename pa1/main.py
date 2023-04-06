@@ -76,9 +76,12 @@ def crawler(thread_index, db_controller):
 
     while not db_controller.is_frontier_empty():
         # Get URL from the frontier
-        [page_id, current_url]  = db_controller.pop_frontier()
-        # Fetch URL to crawler and start crawling page:
-        crawler.crawl_page(current_url, page_id)
+        page = db_controller.pop_frontier()
+        if page != None:
+            page_id = page[0]
+            current_url = page[1]
+            # Fetch URL to crawler and start crawling page:
+            crawler.crawl_page(current_url, page_id)
 
     crawler.StopCrawler()
 

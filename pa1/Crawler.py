@@ -330,4 +330,4 @@ class Crawler:
 
     def StopCrawler(self):
         self.web_driver.close()
-        self.db_controller.close()
+        #self.db_controller.close()
