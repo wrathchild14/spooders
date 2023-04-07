@@ -24,7 +24,7 @@ env\Scripts\activate
 
 Finally:
 ```
-pip install -r requirements.txt
+pip install -r pa1/requirements.txt
 ```
 
 ## Database
@@ -43,7 +43,7 @@ docker run --name postgresql-wier -e POSTGRES_PASSWORD=SecretPassword -e POSTGRE
 ## Run crawler
 
 ```
-python pa1/main.py
+python pa1/crawler/main.py
 ```
 
 Change the NUMBER_OF_WORKERS parameter in ProjectConfig. 
