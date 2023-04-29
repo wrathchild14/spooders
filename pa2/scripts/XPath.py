@@ -1,17 +1,29 @@
-import re
 import json
+from lxml import html
 from utils import clear_JSON
 
 
 def extract_overstock(html_content, json_filename):
-    titles = re.findall(r"<td\s+valign=\"top\">\s+<a\s+href=\"\S*\"><b>(.*)</b>", html_content)
-    list_prices = re.findall(r"<td\salign=\"left\"\s+nowrap=\"nowrap\"><s>(.*)</s>", html_content)
-    prices = re.findall(r"<span\sclass=\"bigred\"><b>(.*)</b>", html_content)
-    savings = re.findall(r"<td\salign=\"left\"\snowrap=\"nowrap\"><span\sclass=\"littleorange\">(.+?)\s", html_content)
-    savings_percents = re.findall(r"<td\salign=\"left\"\snowrap=\"nowrap\"><span\sclass=\"littleorange\">.+?\((\d+%)\)</span>", html_content)
-    contents_data = re.findall(r"<span\sclass=\"normal\">(.+?)<br>", html_content, flags=re.DOTALL)
+    tree = html.fromstring(html_content)
+
+    titles = tree.xpath(r"//*[@valign='top']/a[@href]/b/text()")
+    list_prices = tree.xpath(r"//*[@nowrap='nowrap']/s/text()")
+    prices = tree.xpath(r"//*[@class='bigred']/b/text()")
+    savings_data = tree.xpath(r"//*[@class='littleorange']/text()")
+    contents_data = tree.xpath(r"//*[@class='normal']/text()")
+
+    savings = []
+    savings_percents = []
+
+    # Dollars and percent are together so we have to split
+    for saving in savings_data:
+        parts = saving.split(' (')
+        savings.append(parts[0])
+        savings_percents.append(parts[1].rstrip(')'))
+
     contents = []
 
+    # We only remove newline with space
     for string in contents_data:
         modified_string = string.replace('\n', ' ')
         contents.append(modified_string)
@@ -42,24 +54,23 @@ def extract_overstock(html_content, json_filename):
 
 def extract_rtvslo(html_content, json_filename):
 
-    title = re.search(r'<h1>(.*?)</h1>', html_content).group(1)
-    published_time = re.search(r"<div class=\"publish-meta\">\s+(.+?)<br>", html_content).group(1)
-    author = re.search(r'<div class=\"author-name\">(.+?)</div>', html_content).group(1)
-    subtitle = re.search(r'<div class=\"subtitle\">(.+?)</div>', html_content).group(1)
-    lead = re.search(r'<p class=\"lead\">(.+?)</p>', html_content).group(1)
+    tree = html.fromstring(html_content)
 
-    content = re.search(r'<article class="article">\s*(.+?)\s*</article>', html_content, flags=re.DOTALL).group(1)
-    text = re.sub('<.*?>', '', content)
+    title = tree.xpath('//h1/text()')[0]
+    published_time = tree.xpath("//*[@class=\"publish-meta\"]/text()")[0]
+    published_time = published_time.lstrip('\t\n\n')
+    author = tree.xpath("//*[@class=\"author-name\"]/text()")[0]
+    subtitle = tree.xpath("//*[@class=\"subtitle\"]/text()")[0]
+    lead = tree.xpath("//*[@class=\"lead\"]/text()")[0]
+    contents = tree.xpath("//*[@class=\"article-body\"]/article/p/text()|//*[@class=\"article-body\"]/article/p/strong/text()")
+    text = ' '.join(contents)
 
-    text = text.split("//]]>")[1]
-    text = ' '.join(text.split())
-
-    # print("Title:", title)
-    # print("Published time:", published_time)
-    # print("Author:", author)
-    # print("Subtitle:", subtitle)
-    # print("Lead:", lead)
-    # print("Content:", text)
+    # print(title)
+    # print(published_time)
+    # print(author)
+    # print(subtitle)
+    # print(lead)
+    # print(text)
 
     data = {
         "title": title,
@@ -77,7 +88,7 @@ def extract_rtvslo(html_content, json_filename):
     print(json.dumps(data, indent=3, sort_keys=False, separators=(', ', ' : '), ensure_ascii=False))
 
 
-def run_regex():
+def run_xpath():
 
     websites = [r"../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
                 r"../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html",
@@ -85,7 +96,7 @@ def run_regex():
                 r"../webpages/overstock.com/jewelry02.html"
                 ]
 
-    json_filename = r"../extraction_results/Regex_output.json"
+    json_filename = r"../extraction_results/XPath_output.json"
 
     # Clear JSON before writing
     clear_JSON(json_filename)
@@ -107,5 +118,4 @@ def run_regex():
         else:
             print("Error: Unknown website")
 
-
-run_regex()
+run_xpath()
