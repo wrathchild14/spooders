@@ -4,6 +4,7 @@ from utils import clear_JSON
 
 
 def extract_overstock(html_content, json_filename):
+
     tree = html.fromstring(html_content)
 
     titles = tree.xpath(r"//*[@valign='top']/a[@href]/b/text()")
@@ -57,12 +58,12 @@ def extract_rtvslo(html_content, json_filename):
     tree = html.fromstring(html_content)
 
     title = tree.xpath('//h1/text()')[0]
-    published_time = tree.xpath("//*[@class=\"publish-meta\"]/text()")[0]
+    published_time = tree.xpath("//*[@class='publish-meta']/text()")[0]
     published_time = published_time.lstrip('\t\n\n')
-    author = tree.xpath("//*[@class=\"author-name\"]/text()")[0]
-    subtitle = tree.xpath("//*[@class=\"subtitle\"]/text()")[0]
-    lead = tree.xpath("//*[@class=\"lead\"]/text()")[0]
-    contents = tree.xpath("//*[@class=\"article-body\"]/article/p/text()|//*[@class=\"article-body\"]/article/p/strong/text()")
+    author = tree.xpath("//*[@class='author-name']/text()")[0]
+    subtitle = tree.xpath("//*[@class='subtitle']/text()")[0]
+    lead = tree.xpath("//*[@class='lead']/text()")[0]
+    contents = tree.xpath("//*[@class='article-body']/article/p/text()|//*[@class='article-body']/article/p/strong/text()")
     text = ' '.join(contents)
 
     # print(title)
