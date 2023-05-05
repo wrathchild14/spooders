@@ -151,6 +151,3 @@ def run_regex():
 
         else:
             print("Error: Unknown website")
-
-
-run_regex()

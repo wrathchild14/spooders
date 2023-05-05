@@ -157,5 +157,3 @@ def run_xpath():
 
         else:
             print("Error: Unknown website")
-
-run_xpath()

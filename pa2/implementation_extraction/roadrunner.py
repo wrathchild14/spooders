@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup, Comment, Tag
 import re
 
-from pa2.implementation_extraction.utils import read_webpage
+from utils import read_webpage
 
 
 class Roadrunner:
