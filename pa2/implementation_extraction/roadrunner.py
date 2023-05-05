@@ -76,12 +76,12 @@ class Roadrunner:
 
 
 def run_roadrunner(keyword):
-    webpages = {"steam": ["../webpages/Steam/Save 25_ on This Means Warp on Steam.html",
-                          "../webpages/Steam/Euro Truck Simulator 2 on Steam.html"],
-                "rtvslo": ["../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
-                           "../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ "
+    webpages = {"steam": ["../input_extraction/Steam/Save 25_ on This Means Warp on Steam.html",
+                          "../input_extraction/Steam/Euro Truck Simulator 2 on Steam.html"],
+                "rtvslo": ["../input_extraction/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
+                           "../input_extraction/rtvslo.si/Volvo XC 40 D4 AWD momentum_ "
                            "suvereno med najboljše v razredu - RTVSLO.si.html"],
-                "overstock": ["../webpages/overstock.com/jewelry01.html", "../webpages/overstock.com/jewelry02.html"]}
+                "overstock": ["../input_extraction/overstock.com/jewelry01.html", "../input_extraction/overstock.com/jewelry02.html"]}
 
     if keyword not in webpages.keys():
         print("error, website not present in websites")

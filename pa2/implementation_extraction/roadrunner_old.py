@@ -20,12 +20,12 @@ def filter_webpage(webpage):
 
 
 def run_roadrunner():
-    websites = [r"../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
-                    r"../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html",
-                    r"../webpages/overstock.com/jewelry01.html",
-                    r"../webpages/overstock.com/jewelry02.html",
-                    r"../webpages/Samples/sample1.html",
-                    r"../webpages/Samples/sample2.html"
+    websites = [r"../input_extraction/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
+                    r"../input_extraction/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html",
+                    r"../input_extraction/overstock.com/jewelry01.html",
+                    r"../input_extraction/overstock.com/jewelry02.html",
+                    r"../input_extraction/Samples/sample1.html",
+                    r"../input_extraction/Samples/sample2.html"
                     ]
 
     with open(websites[4], encoding="utf-8") as file:
