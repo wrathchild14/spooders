@@ -3,6 +3,43 @@ import json
 from utils import clear_JSON
 
 
+def extract_steam(html_content, json_filename):
+    game_title = re.search(r"<div\sid=\"appHubAppName\"\sclass=\"apphub_AppName\">(.*)</div>", html_content).group(1)
+    review = re.search(r"<span\sclass=\"game_review_summary positive\"\sitemprop=\"description\">(.*)</span>", html_content).group(1)
+    amount_of_reviews = re.search(r"meta\sitemprop=\"reviewCount\"\scontent=\"(.*)\"", html_content).group(1)
+    release_date = re.search(r"<div\sclass=\"date\">(.*)</div>", html_content).group(1)
+    price = re.search(r"<div\sclass=\"discount_final_price\">(.*?)</div>", html_content)
+
+    if price:
+        price = price.group(1)
+    else:
+        price = re.search(r"<div\sclass=\"game_purchase_price price\"\sdata-price-final=\"1999\">(.*?)</div>", html_content).group(1)
+
+    tags = re.findall(r"<div\sclass=\"label\">(.*?)</div>", html_content)
+
+    # print(game_title)
+    # print(review)
+    # print(amount_of_reviews)
+    # print(release_date)
+    # print(price)
+    # print(tags)
+
+    data = {
+        "game title": game_title,
+        "release date": release_date,
+        "rating": review,
+        "amount of reviews": amount_of_reviews,
+        "price": price,
+        "tags": [t for t in tags]
+    }
+
+    with open(json_filename, "a", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+        f.write("\n")
+
+    print(json.dumps(data, indent=3, sort_keys=False, separators=(', ', ' : '), ensure_ascii=False))
+
+
 def extract_overstock(html_content, json_filename):
     titles = re.findall(r"<td\s+valign=\"top\">\s+<a\s+href=\"\S*\"><b>(.*)</b>", html_content)
     list_prices = re.findall(r"<td\salign=\"left\"\s+nowrap=\"nowrap\"><s>(.*)</s>", html_content)
@@ -82,7 +119,9 @@ def run_regex():
     websites = [r"../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
                 r"../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html",
                 r"../webpages/overstock.com/jewelry01.html",
-                r"../webpages/overstock.com/jewelry02.html"
+                r"../webpages/overstock.com/jewelry02.html",
+                r"../webpages/Steam/Euro Truck Simulator 2 on Steam.htm",
+                r"../webpages/Steam/Save 25_ on This Means Warp on Steam.htm"
                 ]
 
     json_filename = r"../extraction_results/Regex_output.json"
@@ -102,6 +141,12 @@ def run_regex():
             file = open(website)
             content = file.read()
             extract_overstock(content, json_filename)
+            file.close()
+
+        elif "Steam" in website:
+            file = open(website, encoding="utf-8")
+            content = file.read()
+            extract_steam(content, json_filename)
             file.close()
 
         else:

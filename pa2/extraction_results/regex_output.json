@@ -198,3 +198,40 @@
     "saving_percent": "64%",
     "content": "Carved of rich black onyx, this elephant pendant has 14-karat yellow gold applied to mark the feet, tusk, tail, and blanket. A 2-mm round faceted ruby in a gold bezel setting forms the eye. The pendant hangs from an 18-inch chain."
 }
+{
+    "game title": "Euro Truck Simulator 2",
+    "release date": "18 Oct, 2012",
+    "rating": "Overwhelmingly Positive",
+    "amount of reviews": "464767",
+    "price": "19,99€",
+    "tags": [
+        "Single-player",
+        "Online Co-op",
+        "Steam Achievements",
+        "Steam Trading Cards",
+        "Steam Workshop",
+        "Partial Controller Support",
+        "Steam Cloud",
+        "Includes level editor",
+        "Remote Play on Phone",
+        "Remote Play on Tablet",
+        "Remote Play Together"
+    ]
+}
+{
+    "game title": "This Means Warp",
+    "release date": "4 May, 2023",
+    "rating": "Very Positive",
+    "amount of reviews": "229",
+    "price": "14,62€",
+    "tags": [
+        "Single-player",
+        "Online Co-op",
+        "Shared/Split Screen Co-op",
+        "Steam Achievements",
+        "Full controller support",
+        "Steam Cloud",
+        "Remote Play on TV",
+        "Remote Play Together"
+    ]
+}

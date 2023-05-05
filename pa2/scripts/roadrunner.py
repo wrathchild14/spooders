@@ -3,12 +3,6 @@ import re
 import keyboard
 
 
-
-
-
-
-
-
 def filter_webpage(webpage):
 
     # Remove all newline characters
@@ -17,7 +11,6 @@ def filter_webpage(webpage):
 
     for doctype in webpage.find_all(string=lambda text: isinstance(text, Doctype)):
         doctype.extract()
-
 
     # Remove all trailing and leading whitespace
     for tag in webpage.find_all(string=lambda text: isinstance(text, NavigableString)):
@@ -44,94 +37,123 @@ def run_roadrunner():
     html_1 = filter_webpage(html_1)
     html_2 = filter_webpage(html_2)
 
-    # run(html_1, html_2)
-    # print(html_1)
-
-    tags = html_1.find_all()
-    # for tag in tags:
-    #     print(tag.name)
-
-
     some_function(html_1, html_2)
 
 
 def some_function(wrapper, sample):
 
-    # Wrapper is the one that is the longest
-    # n_t1 = len(wrapper.find_all())
-    # n_t2 = len(sample.find_all())
-    #
-    # if n_t2 > n_t1:
-    #     temp = wrapper
-    #     wrapper = sample
-    #     sample = temp
-    #
-    # tags_w = wrapper.find_all()
-    # tags_s = sample.find_all()
-    #
-    # i = 0
-    #
-    # while i < len(tags_w) and i < len(tags_s):
-    #     if tags_w[i].name == tags_s[i].name:
-    #         if tags_w[i].string is not None and tags_s[i].string is not None:
-    #             if tags_w[i].string != tags_s[i].string:
-    #                 tags_w[i].string = "#PCDATA"
-    #     else:
-    #         # Tags don't match so try to find iterators
-    #         # Find terminal in sample
-    #
-    #         print("Mismatch")
-    # i += 1
-    #
-    # print(wrapper)
-    #
-    # # Create an array to store the tags
-
-
     wrapper = html_to_string(str(wrapper))
     sample = html_to_string(str(sample))
 
     print(wrapper)
-    i = 0
-    while i < len(wrapper) and i < len(sample):
-        wrapper_tag, wrapper_content = get_tag_w_content(wrapper[i])
-        sample_tag, sample_content = get_tag_w_content(sample[i])
+
+    p_w = 0
+    p_s = 0
+
+    while True:
+        wrapper_tag, wrapper_content = get_tag_w_content(wrapper[p_w])
+        sample_tag, sample_content = get_tag_w_content(sample[p_s])
+
+        if "</html" in wrapper_tag:
+            break
+        if "</html" in sample_tag:
+            break
+
+        print(wrapper_tag)
+        print(sample_tag)
+        # keyboard.read_key()
+
         if wrapper_tag == sample_tag:
             if sample_content != wrapper_content:
-                wrapper[i] = wrapper_tag + ">#PCDATA"
+                wrapper[p_w] = wrapper_tag + ">#PCDATA"
         else:
             # Tags don't match so try to find iterators
-            # Find closing
-            if sample[i] == "</html>":
-                print("Smo na konc")
+            # Try to find matching square on sample, assume mismatch on sample
 
-            # Find square
-            opening = sample_tag
-            closing_index = find_closing(opening, sample, i)
-            if closing_index != -1:
-                print("Closing found!")
-                square = sample[i:closing_index+1]
+            opening_tag = sample_tag
+            closing_index = find_closing_tag_index(opening_tag, sample, p_s)
+            square = sample[p_s:closing_index + 1]
+            sequence = get_tag_sequence(square)
 
-                print(square)
-                break
+            p_w_matching = find_sequence_in_html(sequence, wrapper)
+
+            # if len(sequence) == 2:
+            #     if find_sequence_in_html(sequence, wrapper) == -1:
+            #         print("Is optional sample")
+            #     else:
+
+            if p_w_matching == -1:
+                print("Out most block is optional on sample, check the rest")
+                inner_sequence = sequence[1:]
 
 
+
+                p_s = closing_index - 1
+
+            else:
+                print("Mismatch on wrapper")
+                opening_tag = wrapper_tag
+                closing_index = find_closing_tag_index(opening_tag, wrapper, p_w)
+                square = wrapper[p_w:closing_index + 1]
+                sequence = get_tag_sequence(square)
+                print(sequence)
+                if len(sequence) == 2:
+                    optional = f"({square[0] + square[1]})?"
+                    # Remove opening
+                    print(wrapper.pop(p_w))
+                    # Change closing
+                    wrapper[closing_index-1] = optional
+                    p_w = closing_index - 1
+                    p_s -= 1
+                    print(p_w)
+                    print(p_s)
+
+        p_w += 1
+        p_s += 1
+        print(wrapper)
+
+
+def find_sequence_in_html(sequence, html):
+    if len(sequence) == 1:
+        temp = [sequence]
+    else:
+        temp = sequence
+    i = 0
+    condition = 0
+    while i < len(html):
+        for t in temp:
+            if html[i].startswith(t):
+                i += 1
+                condition += 1
+                if condition == len(temp):
+                    print("Found matching sequnce")
+                    return i
+            else:
+                condition = 0
+                i += 1
         i += 1
-
-    print(wrapper)
-
+    return -1
 
 
-def find_closing(opening, sample, i):
-    closing = f'</{opening[1:]}>'
-    for j in range(i, len(sample)):
-        content = sample[j]
+def get_tag_sequence(sequence):
+    result = []
+    for string in sequence:
+        tag, x = get_tag_w_content(string)
+        result.append(tag)
+    return result
+
+
+def find_closing_tag_index(opening, html, i):
+    if ' ' in opening:
+        closing = f'</{opening[1:].split()[0]}>'
+    else:
+        closing = f'</{opening[1:]}>'
+    for j in range(i, len(html)):
+        content = html[j]
         if closing == content:
             # Return index
             return j
     return -1
-
-
 
 
 def get_tag_w_content(string):
@@ -152,74 +174,17 @@ def get_tag_w_content(string):
 def html_to_string(html_string):
     result = []
     current_tag = ''
-
-    # Loop through the characters in the HTML string
     for char in html_string:
-        # Check if the current character is the opening angle bracket for a tag
         if char == '<':
-            # If we have a current tag, append it to the result list
             if current_tag:
                 result.append(current_tag)
                 current_tag = ''
-            # Start building a new tag
             current_tag = char
-        # If we're in the middle of building a tag, append the current character
         elif current_tag:
             current_tag += char
-
-    # Append the last tag to the result list
     if current_tag:
         result.append(current_tag)
-
-    # Print the result
     return result
 
+
 run_roadrunner()
-
-# for tag_w, tag_s in zip(tags_w, tags_s):
-#     if tag_w.string is not None:
-#         if tag_w.string != tag_s.string:
-#             # Insert #PCADATA
-#             pass
-
-
-# # Get all squares of a webpage
-# children = [el for el in html_1.descendants]
-#
-#
-# appender=[]
-# for child in children:
-#     if not isinstance(child, str):
-#         appender.append(child)
-#
-#
-# # Get all squares of a webpage
-# children2 = [el for el in html_2.descendants]
-# appender2=[]
-# for child in children2:
-#     if not isinstance(child, str):
-#         appender2.append(child)
-#
-# with open(websites[4], encoding="utf-8") as file:
-#     soup = BeautifulSoup(file.read(), "lxml")
-#
-# tags = soup.find_all()
-# for tag in tags:
-#     print(tag.name)
-#     if tag.string is not None:
-#         print(tag.string)
-
-
-# for c in children:
-#     keyboard.read_key()
-#     print(c.getText())
-
-# for x, y in zip(appender, appender2):
-#     keyboard.read_key()
-#
-#
-#     if x == y:
-#         print(x)
-#     else:
-#         print(x)
-#         print(y)

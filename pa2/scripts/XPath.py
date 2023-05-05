@@ -2,6 +2,38 @@ import json
 from lxml import html
 from utils import clear_JSON
 
+def extract_steam(html_content, json_filename):
+    tree = html.fromstring(html_content)
+
+    game_title = tree.xpath(r"//*[@id='appHubAppName'] [@class='apphub_AppName']/text()")
+    review = tree.xpath("//span[@class='game_review_summary positive'] [@itemprop='description']/text()")
+    amount_of_reviews = tree.xpath(r"//meta[@itemprop='reviewCount']/@content")
+    release_date = tree.xpath(r"//div[@class='date']/text()")
+    price = tree.xpath(r"//div[@class='discount_final_price']/text()")
+    tags = tree.xpath(r"//div[@class='label']/text()")
+
+    # print(game_title)
+    # print(review)
+    # print(amount_of_reviews)
+    # print(release_date)
+    # print(price)
+    # print(tags)
+
+    data = {
+        "game title": game_title[0],
+        "release date": release_date[0],
+        "rating": review[0],
+        "amount of reviews": amount_of_reviews[0],
+        "price": price[0],
+        "tags": [t for t in tags]
+    }
+
+    with open(json_filename, "a", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+        f.write("\n")
+
+    print(json.dumps(data, indent=3, sort_keys=False, separators=(', ', ' : '), ensure_ascii=False))
+
 
 def extract_overstock(html_content, json_filename):
 
@@ -90,12 +122,16 @@ def extract_rtvslo(html_content, json_filename):
 
 
 def run_xpath():
-
     websites = [r"../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
                 r"../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html",
                 r"../webpages/overstock.com/jewelry01.html",
-                r"../webpages/overstock.com/jewelry02.html"
+                r"../webpages/overstock.com/jewelry02.html",
+                r"../webpages/Steam/Euro Truck Simulator 2 on Steam.htm",
+                r"../webpages/Steam/Save 25_ on This Means Warp on Steam.htm"
                 ]
+
+    websites = [r"../webpages/Steam/Euro Truck Simulator 2 on Steam.htm",
+                r"../webpages/Steam/Save 25_ on This Means Warp on Steam.htm"]
 
     json_filename = r"../extraction_results/XPath_output.json"
 
@@ -114,6 +150,12 @@ def run_xpath():
             file = open(website)
             content = file.read()
             extract_overstock(content, json_filename)
+            file.close()
+
+        elif "Steam" in website:
+            file = open(website, encoding="utf-8")
+            content = file.read()
+            extract_steam(content, json_filename)
             file.close()
 
         else:
