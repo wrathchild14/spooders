@@ -5,27 +5,32 @@ import re
 def generate_wrapper(html1, html2):
     soup1 = BeautifulSoup(html1, 'html.parser')
     soup2 = BeautifulSoup(html2, 'html.parser')
+
     unwanted_tags = ["script", "input", "option", "style"]
     for tag in soup1(unwanted_tags):
         tag.decompose()
     for tag in soup2(unwanted_tags):
         tag.decompose()
 
-    tags1 = soup1.find_all()
-    tags2 = soup2.find_all()
+    head1 = soup1.find("head")
+    body1 = soup1.find("body")
+    html1_tag = soup1.find("html")
+    head2 = soup2.find("head")
+    body2 = soup2.find("body")
+    html2_tag = soup2.find("html")
 
     regex = ""
-    for i, (tag1, tag2) in enumerate(zip(tags1, tags2)):
-        if tag1.name and tag2.name and tag1.name == tag2.name:
-            if isinstance(tag1, Comment):
-                continue
-            regex += "\n<" + tag1.name + get_common_attrs(tag1, tag2) + ">"
-            if tag1.string and tag1.string.strip():
-                regex += re.escape(tag1.string.strip()).replace("\\", "") + "\n"
-            elif tag1.contents:
-                regex += generate_regex(tag1, tag2, indent=2)
-            regex += "</" + tag1.name + ">\n"
+    if head1 and head2:
+        regex += generate_regex(head1, head2) + "\n"
+    if body1 and body2:
+        regex += generate_regex(body1, body2) + "\n"
+    if html1_tag and html2_tag:
+        regex = "<html>" + regex + "</html>"
+        attrs = get_common_attrs(html1_tag, html2_tag)
+        if attrs:
+            regex = regex[:-1] + attrs + ">"  # modify opening tag if common attrs exist
 
+    regex = refine_regex("table", regex)
     regex = '\r\n'.join(line for line in regex.splitlines() if line)
     return regex, None
 
@@ -43,8 +48,6 @@ def generate_regex(tag1, tag2, indent=0):
                     continue
                 elif isinstance(child1, str) and child1.strip():
                     regex += " " * (indent + 2) + re.escape(child1.strip()).replace("\\", "") + "\n"
-                # elif isinstance(child1, NavigableString) and child1.string.strip():
-                #     regex += " " * (indent + 2) + re.escape(child1.string.strip()).replace("\\", "") + "\n"
                 elif child1.name == child2.name:
                     regex += generate_regex(child1, child2, indent=indent + 2)
                 else:
@@ -52,7 +55,6 @@ def generate_regex(tag1, tag2, indent=0):
 
         regex += "\n" + " " * indent + "</" + tag1.name + ">\n"
         return regex
-        # return "\n".join([line for line in regex.split("\n") if line.strip()])
     else:
         return ""
 
