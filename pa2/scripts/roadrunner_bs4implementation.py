@@ -43,8 +43,11 @@ def generate_regex(tag1, tag2, indent=0):
         if child1.name and child2.name:
             if isinstance(child1, Comment):
                 continue
-            elif isinstance(child1, str) and child1.strip():
-                regex += " " * (indent + 2) + re.escape(child1.strip()).replace("\\", "") + "\n"
+            elif child1.string:
+                if child1.string.strip() == child2.string.strip():
+                    regex += " " * (indent + 2) + re.escape(child1.string.strip()).replace("\\", "") + "\n"
+                else:
+                    regex += " " * (indent + 2) + "#PCDATA"
             elif child1.name == child2.name:
                 regex += generate_regex(child1, child2, indent=indent + 2)
             else:
@@ -79,12 +82,12 @@ def refine_regex(tag, regex):
 
 
 if __name__ == "__main__":
-    file = open("../webpages/Steam/Euro Truck Simulator 2 on Steam.html",
-                encoding="utf-8")
+    # file = open("../webpages/Steam/Euro Truck Simulator 2 on Steam.html",
+    #             encoding="utf-8")
     # file = open("../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
     #             encoding="utf-8")
-    # file = open("../webpages/overstock.com/jewelry01.html",
-    #             encoding="windows-1252")
+    file = open("../webpages/overstock.com/jewelry01.html",
+                encoding="windows-1252")
     page_audi = file.read()
     file.close()
 
@@ -92,7 +95,7 @@ if __name__ == "__main__":
                 encoding="utf-8")
     # file = open("../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html",
     #             encoding="utf-8")
-    # file = open("../webpages/overstock.com/jewelry02.html", encoding="windows-1252")
+    file = open("../webpages/overstock.com/jewelry02.html", encoding="windows-1252")
     page_volvo = file.read()
     file.close()
 
