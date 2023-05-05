@@ -126,12 +126,12 @@ def run_xpath():
                 r"../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html",
                 r"../webpages/overstock.com/jewelry01.html",
                 r"../webpages/overstock.com/jewelry02.html",
-                r"../webpages/Steam/Euro Truck Simulator 2 on Steam.htm",
-                r"../webpages/Steam/Save 25_ on This Means Warp on Steam.htm"
+                r"../webpages/Steam/Euro Truck Simulator 2 on Steam.html",
+                r"../webpages/Steam/Save 25_ on This Means Warp on Steam.html"
                 ]
 
-    websites = [r"../webpages/Steam/Euro Truck Simulator 2 on Steam.htm",
-                r"../webpages/Steam/Save 25_ on This Means Warp on Steam.htm"]
+    websites = [r"../webpages/Steam/Euro Truck Simulator 2 on Steam.html",
+                r"../webpages/Steam/Save 25_ on This Means Warp on Steam.html"]
 
     json_filename = r"../extraction_results/XPath_output.json"
 
