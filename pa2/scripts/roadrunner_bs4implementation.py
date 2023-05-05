@@ -16,19 +16,17 @@ def generate_wrapper(html1, html2):
 
     regex = ""
     for i, (tag1, tag2) in enumerate(zip(tags1, tags2)):
-        if tag1.name and tag2.name:
+        if tag1.name and tag2.name and tag1.name == tag2.name:
             if isinstance(tag1, Comment):
                 continue
-            elif tag1.name != tag2.name:
-                regex += "<" + tag1.name + ".*?>.*?</" + tag1.name + ">\n"
-            else:
-                regex += "<" + tag1.name + get_common_attrs(tag1, tag2) + ">\n"
-                if tag1.string and tag1.string.strip():
-                    regex += re.escape(tag1.string.strip()) + "\n"
-                elif tag1.contents:
-                    regex += generate_regex(tag1, tag2, indent=2)
-                regex += "</" + tag1.name + ">\n"
+            regex += "\n<" + tag1.name + get_common_attrs(tag1, tag2) + ">"
+            if tag1.string and tag1.string.strip():
+                regex += re.escape(tag1.string.strip()).replace("\\", "") + "\n"
+            elif tag1.contents:
+                regex += generate_regex(tag1, tag2, indent=2)
+            regex += "</" + tag1.name + ">\n"
 
+    regex = '\r\n'.join(line for line in regex.splitlines() if line)
     return regex, None
 
 
@@ -38,7 +36,7 @@ def generate_regex(tag1, tag2, indent=0):
     if attrs is None:
         attrs = ""
     if tag1.name:
-        regex = " " * indent + "<" + tag1.name + attrs + ">\n"
+        regex = "\n" + " " * indent + "<" + tag1.name + attrs + ">\n"
         for child1, child2 in zip(tag1.children, tag2.children):
             if child1.name and child2.name:
                 if isinstance(child1, Comment):
@@ -52,8 +50,9 @@ def generate_regex(tag1, tag2, indent=0):
                 else:
                     regex += " " * (indent + 2) + "<" + child1.name + ".*?>.*?</" + child1.name + ">\n"
 
-        regex += " " * indent + "</" + tag1.name + ">\n"
-        return "\n".join([line for line in regex.split("\n") if line.strip()])
+        regex += "\n" + " " * indent + "</" + tag1.name + ">\n"
+        return regex
+        # return "\n".join([line for line in regex.split("\n") if line.strip()])
     else:
         return ""
 
@@ -82,16 +81,6 @@ def refine_regex(tag, regex):
     return regex
 
 
-def extract_data(page, wrapper):
-    soup = BeautifulSoup(page, 'html.parser')
-    data = {}
-    for tag, regex in wrapper.items():
-        matches = re.findall(regex, str(soup))
-        if matches:
-            data[tag] = matches[0]
-    return data
-
-
 if __name__ == "__main__":
     file = open("../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
                 encoding="utf-8")
@@ -108,9 +97,3 @@ if __name__ == "__main__":
 
     wrapper_text, wrapper_dict = generate_wrapper(page_audi, page_volvo)
     print(wrapper_text)
-
-    # data1 = extract_data(page_audi, wrapper_dict)
-    # print("Data from page 1:", data1)
-    #
-    # data2 = extract_data(page_volvo, wrapper_dict)
-    # print("Data from page 2:", data2)
