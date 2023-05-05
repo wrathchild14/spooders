@@ -128,10 +128,7 @@ def run_xpath():
                 r"../input_extraction/overstock.com/jewelry02.html",
                 r"../input_extraction/Steam/Euro Truck Simulator 2 on Steam.html",
                 r"../input_extraction/Steam/Save 25_ on This Means Warp on Steam.html"
-                ]
-
-    websites = [r"../input_extraction/Steam/Euro Truck Simulator 2 on Steam.html",
-                r"../input_extraction/Steam/Save 25_ on This Means Warp on Steam.html"]
+                ]  
 
     json_filename = r"../extraction_results/XPath_output.json"
 
