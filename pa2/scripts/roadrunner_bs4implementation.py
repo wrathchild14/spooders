@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup, Comment, NavigableString, Tag
+from bs4 import BeautifulSoup, Comment, Tag
 import re
 
 
@@ -28,7 +28,7 @@ def generate_wrapper(html1, html2):
         regex = "<html>" + regex + "</html>"
         attrs = get_common_attrs(html1_tag, html2_tag)
         if attrs:
-            regex = regex[:-1] + attrs + ">"  # modify opening tag if common attrs exist
+            regex = regex[:-1] + attrs + ">"
 
     regex = refine_regex("table", regex)
     regex = '\r\n'.join(line for line in regex.splitlines() if line)
@@ -38,25 +38,20 @@ def generate_wrapper(html1, html2):
 def generate_regex(tag1, tag2, indent=0):
     attrs = get_common_attrs(tag1, tag2)
 
-    if attrs is None:
-        attrs = ""
-    if tag1.name:
-        regex = "\n" + " " * indent + "<" + tag1.name + attrs + ">\n"
-        for child1, child2 in zip(tag1.children, tag2.children):
-            if child1.name and child2.name:
-                if isinstance(child1, Comment):
-                    continue
-                elif isinstance(child1, str) and child1.strip():
-                    regex += " " * (indent + 2) + re.escape(child1.strip()).replace("\\", "") + "\n"
-                elif child1.name == child2.name:
-                    regex += generate_regex(child1, child2, indent=indent + 2)
-                else:
-                    regex += " " * (indent + 2) + "<" + child1.name + ".*?>.*?</" + child1.name + ">\n"
+    regex = "\n" + " " * indent + "<" + tag1.name + attrs + ">\n"
+    for child1, child2 in zip(tag1.children, tag2.children):
+        if child1.name and child2.name:
+            if isinstance(child1, Comment):
+                continue
+            elif isinstance(child1, str) and child1.strip():
+                regex += " " * (indent + 2) + re.escape(child1.strip()).replace("\\", "") + "\n"
+            elif child1.name == child2.name:
+                regex += generate_regex(child1, child2, indent=indent + 2)
+            else:
+                regex += " " * (indent + 2) + "<" + child1.name + ".*?>.*?</" + child1.name + ">\n"
 
-        regex += "\n" + " " * indent + "</" + tag1.name + ">\n"
-        return regex
-    else:
-        return ""
+    regex += "\n" + " " * indent + "</" + tag1.name + ">\n"
+    return regex
 
 
 def get_common_attrs(tag1, tag2):
@@ -84,15 +79,19 @@ def refine_regex(tag, regex):
 
 
 if __name__ == "__main__":
-    file = open("../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
+    file = open("../webpages/Steam/Euro Truck Simulator 2 on Steam.html",
                 encoding="utf-8")
+    # file = open("../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
+    #             encoding="utf-8")
     # file = open("../webpages/overstock.com/jewelry01.html",
     #             encoding="windows-1252")
     page_audi = file.read()
     file.close()
 
-    file = open("../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html",
+    file = open("../webpages/Steam/Save 25_ on This Means Warp on Steam.html",
                 encoding="utf-8")
+    # file = open("../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html",
+    #             encoding="utf-8")
     # file = open("../webpages/overstock.com/jewelry02.html", encoding="windows-1252")
     page_volvo = file.read()
     file.close()
