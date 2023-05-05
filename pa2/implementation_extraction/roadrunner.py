@@ -56,7 +56,7 @@ class Roadrunner:
                 elif child1.name == child2.name:
                     regex += self.generate_regex(child1, child2, indent=indent + 2)
                 else:
-                    regex += "\n" + " " * (indent + 2) + "<" + child1.name + ".*?>.*?</" + child1.name + ">\n"
+                    regex += "\n" + " " * (indent + 2) + "(<" + child1.name + ".*?>.*?</" + child1.name + ">)+\n"
 
         regex += "\n" + " " * indent + "</" + tag1.name + ">\n"
         return regex
