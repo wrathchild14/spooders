@@ -124,7 +124,7 @@ def run_regex():
                 r"../webpages/Steam/Save 25_ on This Means Warp on Steam.html"
                 ]
 
-    json_filename = r"../extraction_results/Regex_output.json"
+    json_filename = r"../extraction_results/regex_output.json"
 
     # Clear JSON before writing
     clear_JSON(json_filename)
