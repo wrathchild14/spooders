@@ -30,7 +30,6 @@ def generate_wrapper(html1, html2):
         if attrs:
             regex = regex[:-1] + attrs + ">"
 
-    regex = refine_regex("table", regex)
     regex = '\r\n'.join(line for line in regex.splitlines() if line)
     return regex, None
 
@@ -68,17 +67,6 @@ def get_common_attrs(tag1, tag2):
             if "[" not in str(attrs1[key]) and "]" not in str(attrs1[key]):
                 common_attrs += f' {key}="{attrs1[key]}"'
     return common_attrs
-
-
-# only capture rows with more than one data cell
-def refine_regex(tag, regex):
-    if tag == "table":
-        regex = regex.replace("<tr>", "(<tr>.+?<td>.+?</td>.+?</tr>)")
-        regex = regex.replace("<td>", "")
-        regex = regex.replace("</td>", "")
-        regex = regex.replace("<th>", "")
-        regex = regex.replace("</th>", "")
-    return regex
 
 
 if __name__ == "__main__":
