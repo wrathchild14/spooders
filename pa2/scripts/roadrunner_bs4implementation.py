@@ -5,9 +5,9 @@ from pa2.scripts.utils import read_webpage
 
 
 class Roadrunner:
-    def __init__(self, webpage1, webpage2):
-        self.page1 = read_webpage(webpage1)
-        self.page2 = read_webpage(webpage2)
+    def __init__(self, webpage1, webpage2, is_overstock=False):
+        self.page1 = read_webpage(webpage1, is_overstock)
+        self.page2 = read_webpage(webpage2, is_overstock)
 
     def generate_wrapper(self):
         soup1 = BeautifulSoup(self.page1, 'html.parser')
@@ -75,10 +75,23 @@ class Roadrunner:
         return common_attrs
 
 
-if __name__ == "__main__":
-    roadrunner = Roadrunner("../webpages/Steam/Save 25_ on This Means Warp on Steam.html",
-                            "../webpages/Steam/Euro Truck Simulator 2 on Steam.html")
-    # roadrunner = Roadrunner("../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
-    #                         "../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ suvereno med najboljše v razredu - RTVSLO.si.html")
+def run_roadrunner(keyword):
+    webpages = {"steam": ["../webpages/Steam/Save 25_ on This Means Warp on Steam.html",
+                          "../webpages/Steam/Euro Truck Simulator 2 on Steam.html"],
+                "rtvslo": ["../webpages/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html",
+                           "../webpages/rtvslo.si/Volvo XC 40 D4 AWD momentum_ "
+                           "suvereno med najboljše v razredu - RTVSLO.si.html"],
+                "overstock": ["../webpages/overstock.com/jewelry01.html", "../webpages/overstock.com/jewelry02.html"]}
+
+    if keyword not in webpages.keys():
+        print("error, website not present in websites")
+        return
+
+    is_overstock = True if keyword == "overstock" else False
+    roadrunner = Roadrunner(webpages[keyword][0], webpages[keyword][1], is_overstock)
     wrapper = roadrunner.generate_wrapper()
     print(wrapper)
+
+
+if __name__ == "__main__":
+    run_roadrunner("steam")

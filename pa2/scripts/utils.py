@@ -3,8 +3,8 @@ def clear_JSON(filepath):
         f.truncate(0)
 
 
-def read_webpage(webpage):
-    file = open(webpage, encoding="utf-8")
+def read_webpage(webpage, is_overstock=False):
+    file = open(webpage) if is_overstock else open(webpage, encoding="utf-8")
     result = file.read()
     file.close()
     return result
