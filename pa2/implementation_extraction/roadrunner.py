@@ -13,7 +13,7 @@ class Roadrunner:
         soup1 = BeautifulSoup(self.page1, 'html.parser')
         soup2 = BeautifulSoup(self.page2, 'html.parser')
 
-        unwanted_tags = ["script", "input", "option", "style"]
+        unwanted_tags = ["script", "input", "option", "style", "br", "hr"]
         for tag in soup1(unwanted_tags):
             tag.decompose()
         for tag in soup2(unwanted_tags):
