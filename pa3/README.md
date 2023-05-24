@@ -22,15 +22,15 @@ python create-database.py
 python run-indexing.py
 ```
 
-## data retrieval with SQLite and built index
+## Data retrieval with SQLite and built index
 
 ```shell
-python run-sqlite-search.py
+python run-sqlite-search.py "SEARCH QUERY"
 ```
 
 ## Data retrieval without SQLite
 
 ```shell
-python run-basic-search.py
+python run-basic-search.py "SEARCH QUERY"
 ```
 
