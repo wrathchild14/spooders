@@ -4,4 +4,4 @@
  
 [Assignment 2 - Extraction](./pa2)
 
-[Assignment 3 - Indexing(./pa3)
+[Assignment 3 - Indexing](./pa3)
