@@ -1,9 +1,11 @@
 # Usage
 
-Move into proper directory.
+Move into proper directory and install dependencies.
 
 ```shell
-cd pa3/implementation-indexing
+cd pa3
+pip install -r requirements.txt
+cd implementation-indexing
 ```
 
 ## Database
@@ -13,3 +15,22 @@ If database not present, first create database inverted-index.db with tables Ind
 ```shell
 python create-database.py
 ```
+
+## Preprocess data and create index
+
+```shell
+python run-indexing.py
+```
+
+## data retrieval with SQLite and built index
+
+```shell
+python run-sqlite-search.py
+```
+
+## Data retrieval without SQLite
+
+```shell
+python run-basic-search.py
+```
+
