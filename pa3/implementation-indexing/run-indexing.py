@@ -23,8 +23,8 @@ for root, dirs, files in os.walk('../data'):
                 tokens = word_tokenize(soup_text)
                 # Normalization into lowercase letters
                 tokens = [token.lower() for token in tokens]
-                # Stopword removal
-                filtered_tokens = [token for token in tokens if token not in stop_words_slovene and token not in stop_words_symbols]
+                # Stopword removal and remove tokens that don't have any letters
+                filtered_tokens = [token for token in tokens if token not in stop_words_slovene and token not in stop_words_symbols and any(c.isalpha() for c in token)]
 
                 unique_tokens = []
                 for token in filtered_tokens:
