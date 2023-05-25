@@ -18,7 +18,7 @@ def form_snippet(document_path, indexes):
         soup_text = soup.text
         tokens = word_tokenize(soup_text)
         tokens = [token.lower() for token in tokens]
-        tokens = [token for token in tokens if token not in stop_words_slovene and token not in stop_words_symbols]
+        tokens = [token for token in tokens if token not in stop_words_slovene and token not in stop_words_symbols and any(c.isalpha() for c in token)]
         
         for index in indexes:
             if index-2 > 0:
@@ -41,7 +41,7 @@ if len(sys.argv) == 2:
 
     # Prereprocess query
     tokens = word_tokenize(query)
-    tokens = [token.lower() for token in tokens if token not in stop_words_slovene and token not in stop_words_symbols]
+    tokens = [token.lower() for token in tokens if token not in stop_words_slovene and token not in stop_words_symbols and any(c.isalpha() for c in token)]
     tokens = " ".join(tokens)
     query_tokens = ",".join(map(lambda x: "'" + x + "'", tokens.split(' ')))
     #print(query_tokens)

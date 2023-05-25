@@ -46,7 +46,7 @@ if len(sys.argv) == 2:
                     soup_text = soup.text
                     tokens = word_tokenize(soup_text)
                     tokens = [token.lower() for token in tokens]
-                    filtered_tokens = [token for token in tokens if token not in stop_words_slovene and token not in stop_words_symbols]
+                    filtered_tokens = [token for token in tokens if token not in stop_words_slovene and token not in stop_words_symbols and any(c.isalpha() for c in token)]
                     # Find tokens from query in document and save document_name, frequency and snippet
                     for query_token in query:
                         if query_token in filtered_tokens:
