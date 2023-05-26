@@ -68,9 +68,10 @@ if len(sys.argv) == 2:
     # Sort rows by frequency descending
     rows.sort(key=lambda x: x[1], reverse=True)
 
-    print("Results found in " + str(time.time()-start_time) + "s.\n")
     print("{: <15} {: <45} {: <0}".format("Frequencies","Document","Snippet"))
     print("{: <15} {: <45} {: <0}".format("-----------","-----------------------------------------","-----------------------------------------"))
     for row in rows:
         print("{: <15} {: <45} {: <0}".format(row[1],row[0],row[2]))
         print()
+
+    print("Results found in " + str(time.time()-start_time) + "s.\n")
