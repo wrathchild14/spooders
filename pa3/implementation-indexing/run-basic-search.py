@@ -57,7 +57,13 @@ if len(sys.argv) == 2:
                                     indexes.append(i)
                             frequency = len(indexes)
                             snippet = form_snippet(filtered_tokens, document_name, indexes)
-                            rows.append([document_name, frequency, snippet])
+                            for i in range(len(rows)):
+                                # Merge results by document, don't create a separate row if already exists
+                                if document_name in rows[i][0]:
+                                    rows[i][1] += frequency
+                                    break
+                            else:
+                                rows.append([document_name, frequency, snippet])
 
     # Sort rows by frequency descending
     rows.sort(key=lambda x: x[1], reverse=True)
