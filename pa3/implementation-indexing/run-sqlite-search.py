@@ -55,6 +55,7 @@ if len(sys.argv) == 2:
     sql_query = "SELECT p.documentName AS docName, SUM(frequency) AS freq, GROUP_CONCAT(indexes) AS idxs FROM Posting p WHERE p.word IN (" + query_tokens + ") GROUP BY p.documentName ORDER BY freq DESC"
     cursor = c.execute(sql_query)
     
+    print("Results found in " + str(time.time()-start_time) + "s.\n")
     print("{: <15} {: <45} {: <0}".format("Frequencies","Document","Snippet"))
     print("{: <15} {: <45} {: <0}".format("-----------","-----------------------------------------","-----------------------------------------"))
     for row in cursor:
@@ -62,6 +63,4 @@ if len(sys.argv) == 2:
         print("{: <15} {: <45} {: <0}".format(row[1],row[0],snippet))
         print()
 
-    print("Results found in " + str(time.time()-start_time) + "s.\n")
-    
     conn.close()
